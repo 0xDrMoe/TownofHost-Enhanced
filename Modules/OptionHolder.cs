@@ -1033,7 +1033,7 @@ public static class Options
     public static void Load()
     {
         //#######################################
-        // 26800  lasted id for roles/add-ons (Next use 26900)
+        // 27000 lasted id for roles/add-ons (Next use 27100)
         // Limit id for  roles/add-ons --- "59999"
         //#######################################
         // Start Load Settings
@@ -2657,6 +2657,8 @@ public static class Options
             .SetParent(CustomRoleSpawnChances[CustomRoles.Gravestone]);
         NeutralCanBeGravestone = BooleanOptionItem.Create(22105, "NeutralCanBeGravestone", true, TabGroup.Addons, false)
             .SetParent(CustomRoleSpawnChances[CustomRoles.Gravestone]);
+
+        Susceptible.SetupCustomOptions();
         
         SetupAdtRoleOptions(22200, CustomRoles.Guesser, canSetNum: true, tab: TabGroup.Addons);
         ImpCanBeGuesser = BooleanOptionItem.Create(22203, "ImpCanBeGuesser", true, TabGroup.Addons, false)
