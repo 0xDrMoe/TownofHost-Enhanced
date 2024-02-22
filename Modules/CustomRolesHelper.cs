@@ -65,7 +65,6 @@ static class CustomRolesHelper
                 CustomRoles.Dictator => CustomRoles.Crewmate,
                 CustomRoles.Inhibitor => CustomRoles.Impostor,
                 CustomRoles.Saboteur => CustomRoles.Impostor,
-                CustomRoles.Berserker => CustomRoles.Impostor,
                 CustomRoles.Doctor => CustomRoles.Scientist,
                 CustomRoles.ScientistTOHE => CustomRoles.Scientist,
                 CustomRoles.Tracefinder => CustomRoles.Scientist,
@@ -266,6 +265,9 @@ static class CustomRolesHelper
             CustomRoles.Spiritcaller => RoleTypes.Impostor,
             CustomRoles.ChiefOfPolice => RoleTypes.Impostor,
             CustomRoles.Quizmaster => RoleTypes.Impostor,
+            CustomRoles.Baker => RoleTypes.Impostor,
+            CustomRoles.Berserker => RoleTypes.Impostor,
+            CustomRoles.War => RoleTypes.Impostor,
             _ => RoleTypes.GuardianAngel
         };
     }
@@ -412,6 +414,8 @@ static class CustomRolesHelper
             CustomRoles.Bandit or
             CustomRoles.Pestilence or
             CustomRoles.PlagueBearer or
+            CustomRoles.Baker or
+            CustomRoles.Famine or
             CustomRoles.Agitater or
             CustomRoles.Innocent or
             CustomRoles.Vulture or
@@ -434,6 +438,7 @@ static class CustomRolesHelper
        //     CustomRoles.PotionMaster or
             CustomRoles.Doomsayer or
             CustomRoles.SoulCollector or
+            CustomRoles.Death or
             CustomRoles.Pirate or
             CustomRoles.Seeker or
             CustomRoles.Pixie or
@@ -442,6 +447,8 @@ static class CustomRolesHelper
             CustomRoles.VengefulRomantic or
             CustomRoles.Doppelganger or
             CustomRoles.SchrodingersCat or
+            CustomRoles.Berserker or
+            CustomRoles.War or
             //     CustomRoles.Juggernaut or
             //      CustomRoles.Jinx or
             //     CustomRoles.Poisoner or
@@ -509,10 +516,8 @@ static class CustomRolesHelper
             CustomRoles.Virus or
             CustomRoles.BloodKnight or
             CustomRoles.Spiritcaller or
-            CustomRoles.PlagueBearer or
             CustomRoles.Agitater or
-            CustomRoles.RuthlessRomantic or
-            CustomRoles.Pestilence;
+            CustomRoles.RuthlessRomantic;
     }
     public static bool IsNonNK(this CustomRoles role) // ROLE ASSIGNING, NOT NEUTRAL TYPE
     {
@@ -529,7 +534,6 @@ static class CustomRolesHelper
             CustomRoles.Opportunist or
             CustomRoles.Pursuer or
             CustomRoles.Shaman or
-            CustomRoles.SoulCollector or
             CustomRoles.CursedSoul or
             CustomRoles.Doomsayer or
             CustomRoles.Executioner or
@@ -594,7 +598,6 @@ static class CustomRolesHelper
             CustomRoles.Succubus or
             CustomRoles.Phantom or
             CustomRoles.Mario or
-            CustomRoles.SoulCollector or
             CustomRoles.Pirate or
             CustomRoles.Terrorist or
             CustomRoles.Vulture or
@@ -602,6 +605,19 @@ static class CustomRolesHelper
             CustomRoles.Solsticer or
             CustomRoles.Revolutionist or
             CustomRoles.Provocateur;
+    }
+    public static bool IsNA(this CustomRoles role)
+    {
+        return role is
+            CustomRoles.PlagueBearer or
+            CustomRoles.Pestilence or
+            CustomRoles.SoulCollector or
+            CustomRoles.Death or
+            CustomRoles.Baker or
+            CustomRoles.Famine or
+            CustomRoles.Berserker or
+            CustomRoles.War;
+
     }
     public static bool IsSnitchTarget(this CustomRoles role)
     {
@@ -638,7 +654,6 @@ static class CustomRolesHelper
             CustomRoles.Succubus or
             CustomRoles.BloodKnight or
             CustomRoles.Spiritcaller or
-            CustomRoles.PlagueBearer or
             CustomRoles.Agitater or
             CustomRoles.RuthlessRomantic or
             CustomRoles.Shroud or
@@ -688,7 +703,6 @@ static class CustomRolesHelper
             CustomRoles.Undertaker or
             CustomRoles.RiftMaker or
             CustomRoles.Assassin or
-            CustomRoles.Berserker or
             CustomRoles.Anonymous or
             CustomRoles.Visionary or
             CustomRoles.Miner or
@@ -767,6 +781,7 @@ static class CustomRolesHelper
             CustomRoles.Shroud or
             CustomRoles.Wraith or
             CustomRoles.SoulCollector or
+            CustomRoles.Death or
             CustomRoles.Vulture or
             CustomRoles.Taskinator or
             CustomRoles.Convict or
@@ -790,6 +805,8 @@ static class CustomRolesHelper
             CustomRoles.Agitater or
             CustomRoles.PlagueBearer or
             CustomRoles.Pestilence or
+            CustomRoles.Baker or
+            CustomRoles.Famine or
             CustomRoles.Pirate or
             CustomRoles.Seeker or
             CustomRoles.Pixie or
@@ -826,6 +843,8 @@ static class CustomRolesHelper
             CustomRoles.Doomsayer or
             CustomRoles.Spiritcaller or
             CustomRoles.SchrodingersCat or
+            CustomRoles.Berserker or
+            CustomRoles.War or
             CustomRoles.Quizmaster;
     }
 /*    public static bool IsCoven(this CustomRoles role)
@@ -878,7 +897,6 @@ static class CustomRolesHelper
             CustomRoles.Necromancer or
             CustomRoles.Pirate or
             CustomRoles.Provocateur or
-            CustomRoles.SoulCollector or
             CustomRoles.Wraith or
             CustomRoles.Juggernaut or
             CustomRoles.Pelican or
@@ -966,6 +984,8 @@ static class CustomRolesHelper
             CustomRoles.Pixie or
             CustomRoles.Seeker or
             CustomRoles.SchrodingersCat or
+            CustomRoles.Berserker or
+            CustomRoles.War or
             CustomRoles.Quizmaster;
     }
     public static bool IsMadmate(this CustomRoles role)
@@ -987,6 +1007,7 @@ static class CustomRolesHelper
             CustomRoles.Imitator or
             CustomRoles.Agitater or
             CustomRoles.PlagueBearer or
+            CustomRoles.Baker or
             CustomRoles.Pirate or
             CustomRoles.Hater or
             CustomRoles.Totocalcio or
@@ -1503,7 +1524,6 @@ static class CustomRolesHelper
                 break;
             case CustomRoles.Mare:
                 if (pc.Is(CustomRoles.Underdog)
-                    || pc.Is(CustomRoles.Berserker)
                     || pc.Is(CustomRoles.Inhibitor)
                     || pc.Is(CustomRoles.Saboteur)
                     || pc.Is(CustomRoles.Swift)
@@ -1893,8 +1913,14 @@ static class CustomRolesHelper
            CustomRoles.Shroud => CountTypes.Shroud,
            CustomRoles.Werewolf => CountTypes.Werewolf,
            CustomRoles.Wraith => CountTypes.Wraith,
-           CustomRoles.Pestilence => CountTypes.Pestilence,
-           CustomRoles.PlagueBearer => CountTypes.PlagueBearer,
+           CustomRoles.Pestilence => CountTypes.Apocalypse,
+           CustomRoles.PlagueBearer => CountTypes.Apocalypse,
+           CustomRoles.SoulCollector => CountTypes.Apocalypse,
+           CustomRoles.Death => CountTypes.Apocalypse,
+           CustomRoles.Baker => CountTypes.Apocalypse,
+           CustomRoles.Famine => CountTypes.Apocalypse,
+           CustomRoles.Berserker => CountTypes.Apocalypse,
+           CustomRoles.War => CountTypes.Apocalypse,
            CustomRoles.Agitater => CountTypes.Agitater,
            CustomRoles.Parasite => CountTypes.Impostor,
            CustomRoles.SerialKiller => CountTypes.SerialKiller,
@@ -1971,16 +1997,17 @@ static class CustomRolesHelper
             CustomRoles.Pickpocket => CustomWinner.Pickpocket,
             CustomRoles.Traitor => CustomWinner.Traitor,
             CustomRoles.Vulture => CustomWinner.Vulture,
-            CustomRoles.Pestilence => CustomWinner.Pestilence,
+            CustomRoles.Apocalypse => CustomWinner.Apocalypse,
             CustomRoles.Medusa => CustomWinner.Medusa,
             CustomRoles.Spiritcaller => CustomWinner.Spiritcaller,
             CustomRoles.Glitch => CustomWinner.Glitch,
-            CustomRoles.PlagueBearer => CustomWinner.Plaguebearer,
+            //CustomRoles.PlagueBearer => CustomWinner.Apocalypse,
             CustomRoles.Masochist => CustomWinner.Masochist,
             CustomRoles.Doomsayer => CustomWinner.Doomsayer,
             CustomRoles.Shroud => CustomWinner.Shroud,
             CustomRoles.Seeker => CustomWinner.Seeker,
-            CustomRoles.SoulCollector => CustomWinner.SoulCollector,
+            //CustomRoles.SoulCollector => CustomWinner.Apocalypse,
+            //CustomRoles.Death => CustomWinner.Apocalypse,
             CustomRoles.RuthlessRomantic => CustomWinner.RuthlessRomantic,
             CustomRoles.Mini => CustomWinner.NiceMini,
             CustomRoles.Doppelganger => CustomWinner.Doppelganger,
@@ -2005,8 +2032,6 @@ static class CustomRolesHelper
             CountTypes.Shroud => CustomRoles.Shroud,
             CountTypes.Werewolf => CustomRoles.Werewolf,
             CountTypes.Wraith => CustomRoles.Wraith,
-            CountTypes.Pestilence => CustomRoles.Pestilence,
-            CountTypes.PlagueBearer => CustomRoles.PlagueBearer,
             CountTypes.Agitater => CustomRoles.Agitater,
             CountTypes.SerialKiller => CustomRoles.SerialKiller,
             CountTypes.Quizmaster => CustomRoles.Quizmaster,
@@ -2028,6 +2053,7 @@ static class CustomRolesHelper
             CountTypes.Spiritcaller => CustomRoles.Spiritcaller,
             CountTypes.Arsonist => CustomRoles.Arsonist,
             CountTypes.RuthlessRomantic => CustomRoles.RuthlessRomantic,
+            CountTypes.Apocalypse => CustomRoles.Apocalypse,
             //CountTypes.Impostor => CustomRoles.ImpostorTOHE,
             //CountTypes.Crew => CustomRoles.CrewmateTOHE,
             //CountTypes.None => throw new System.NotImplementedException(),
@@ -2074,9 +2100,8 @@ public enum CountTypes
     Traitor,
     Medusa,
     Spiritcaller,
-    Pestilence,
+    Apocalypse,
     Quizmaster,
-    PlagueBearer,
     Glitch,
     Arsonist,
     Huntsman,

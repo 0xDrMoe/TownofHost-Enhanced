@@ -129,6 +129,7 @@ public static class PlagueBearer
     public static bool OnCheckMurderPestilence(PlayerControl killer, PlayerControl target)
     {
         if (killer == null || target == null) return false;
+        if (target.IsNeutralApocalypse()) return true;
         if (!PestilenceList.Contains(target.PlayerId)) return false;
         if (target.Is(CustomRoles.Guardian) && target.AllTasksCompleted()) return true;
         if (target.Is(CustomRoles.Opportunist) && target.AllTasksCompleted()) return true;

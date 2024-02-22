@@ -146,6 +146,9 @@
   "Seeker": "#ffaa00",
   "Pixie": "#00FF00",
   "SoulCollector": "#A675A1",
+  "Death": "#ff174f",
+  "Baker": "#bf9f7a",
+  "Famine": "#83461c",
   "Imitator": "#B3D94C",
   "Doppelganger": "#f6f4a3",
   "GM": "#ff5b70",
@@ -229,5 +232,8 @@
   "SchrodingersCat": "#404040",
   "PlagueDoctor": "#ff6633",
   "Rainbow": "#55FFCB",
+  "Apocalypse": "#ff174f",
+  "Berserker": "#FF0055",
+  "War": "#2B0804"
   "Statue": "#7E9C8A"
 }

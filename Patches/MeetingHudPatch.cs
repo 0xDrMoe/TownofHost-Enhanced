@@ -952,6 +952,23 @@ class MeetingHudStartPatch
             string separator = TranslationController.Instance.currentLanguage.languageID is SupportedLangs.English or SupportedLangs.Russian ? "], [" : "】, 【";
             AddMsg(string.Format(GetString("BaitAdviceAlive"), string.Join(separator, baitAliveList)), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Bait), GetString("BaitAliveTitle")));
         }
+        //Apocalypse Notify
+        if (CustomRoles.Death.RoleExist())
+        {
+            AddMsg(string.Format(GetString("SoulCollectorTransform")), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Death), GetString("ApocalypseIsNigh")));
+        }
+        if (CustomRoles.Famine.RoleExist())
+        {
+            AddMsg(string.Format(GetString("BakerTransform")), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Famine), GetString("ApocalypseIsNigh")));
+        }
+        if (CustomRoles.War.RoleExist())
+        {
+            AddMsg(string.Format(GetString("BerserkerTransform")), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.War), GetString("ApocalypseIsNigh")));
+        }
+        if (CustomRoles.Pestilence.RoleExist())
+        {
+            AddMsg(string.Format(GetString("PestilenceTransform")), 255, Utils.ColorString(Utils.GetRoleColor(CustomRoles.Pestilence), GetString("ApocalypseIsNigh")));
+        }
         string MimicMsg = "";
         foreach (var pc in Main.AllPlayerControls)
         {

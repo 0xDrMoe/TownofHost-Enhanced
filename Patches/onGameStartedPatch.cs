@@ -346,6 +346,7 @@ internal class ChangeRoleSettings
             Spiritcaller.Init();
             Lurker.Init();
             PlagueBearer.Init();
+            Baker.Init();
             Reverie.Init();
             Doomsayer.Init();
             Lucky.Init();
@@ -1014,8 +1015,11 @@ internal class SelectRolesPatch
                     case CustomRoles.PlagueBearer:
                         PlagueBearer.Add(pc.PlayerId);
                         break;
+                    case CustomRoles.Baker:
+                        Baker.Add(pc.PlayerId);
+                        break;
                     case CustomRoles.Inspector:
-                        Inspector.Add(pc.PlayerId);
+                        ParityCop.Add(pc.PlayerId);
                         break;
                     case CustomRoles.Keeper:
                         Keeper.Add(pc.PlayerId);

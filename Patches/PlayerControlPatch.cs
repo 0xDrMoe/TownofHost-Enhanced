@@ -455,6 +455,10 @@ class CheckMurderPatch
                     if (!PlagueBearer.OnCheckMurder(killer, target))
                         return false;
                     break;
+                case CustomRoles.Baker:
+                    if (!Baker.OnCheckMurder(killer, target))
+                        return false;
+                    break;
                 case CustomRoles.Pirate:
                     if (!Pirate.OnCheckMurder(killer, target))
                         return false;
@@ -733,7 +737,7 @@ class CheckMurderPatch
                 {
                     Main.AllPlayerKillCooldown[killer.PlayerId] = Options.BerserkerOneKillCooldown.GetFloat();
                 }
-
+                if (target.IsNeutralApocalypse()) return true;
                 if (Main.BerserkerKillMax[killer.PlayerId] == Options.BerserkerScavengerLevel.GetInt() && Options.BerserkerTwoCanScavenger.GetBool())
                 {
                     killer.RpcTeleport(target.GetCustomPosition());
@@ -771,6 +775,12 @@ class CheckMurderPatch
                 //{
                 //    Main.AllPlayerSpeed[killer.PlayerId] = Options.BerserkerSpeed.GetFloat();
                 //}
+                if (Main.BerserkerKillMax[killer.PlayerId] >= Options.BerserkerImmortalLevel.GetInt() && Options.BerserkerFourCanNotKill.GetBool()) 
+                {
+                    killer.RpcSetCustomRole(CustomRoles.War);
+                    killer.Notify(GetString("BerserkerToWar"));
+                    killer.RpcGuardAndKill(killer);
+                }
                 break;
         }
 
@@ -1458,6 +1468,7 @@ class MurderPlayerPatch
         if (Tracefinder.IsEnable) Tracefinder.OnPlayerDead(target);
         if (Vulture.IsEnable) Vulture.OnPlayerDead(target);
         if (SoulCollector.IsEnable) SoulCollector.OnPlayerDead(target);
+        if (Baker.IsEnable) Baker.OnPlayerDead(target);
         if (Medic.IsEnable) Medic.IsDead(target);
 
         Utils.AfterPlayerDeathTasks(target);
@@ -2643,6 +2654,7 @@ class ReportDeadBodyPatch
         if (Huntsman.IsEnable) Huntsman.OnReportDeadBody();
         if (Mercenary.IsEnable) Mercenary.OnReportDeadBody();
         if (SoulCollector.IsEnable) SoulCollector.OnReportDeadBody();
+        if (Baker.IsEnable) Baker.OnReportDeadBody();
         if (Puppeteer.IsEnable) Puppeteer.OnReportDeadBody();
         if (Sniper.IsEnable) Sniper.OnReportDeadBody();
         if (Undertaker.IsEnable) Undertaker.OnReportDeadBody();
@@ -2955,6 +2967,14 @@ class FixedUpdateInNormalGamePatch
 
                     case CustomRoles.PlagueBearer:
                         PlagueBearer.OnFixedUpdate(player);
+                        break;
+
+                    case CustomRoles.Baker:
+                        Baker.OnFixedUpdate(player);
+                        break; 
+
+                    case CustomRoles.SoulCollector:
+                        SoulCollector.BecomeDeath(player);
                         break;
 
                     case CustomRoles.Farseer:
@@ -3547,7 +3567,13 @@ class FixedUpdateInNormalGamePatch
                         if (PlagueBearer.IsPlagued(seer.PlayerId, target.PlayerId))
                             Mark.Append($"<color={Utils.GetRoleColorCode(seerRole)}>●</color>");
                         break;
-
+                    case CustomRoles.Baker:
+                    case CustomRoles.Famine:
+                        if (Baker.HasBread(seer.PlayerId, target.PlayerId))
+                        {
+                            Mark.Append($"<color={Utils.GetRoleColorCode(CustomRoles.Baker)}>●</color>");
+                        }
+                        break;
                     case CustomRoles.Arsonist:
                         if (seer.IsDousedPlayer(target))
                             Mark.Append($"<color={Utils.GetRoleColorCode(seerRole)}>▲</color>");

@@ -199,6 +199,7 @@ public static class Divinator
                 CustomRoles.Greedier,
                 CustomRoles.Merchant,
                 CustomRoles.SoulCollector,
+                CustomRoles.Death,
                 CustomRoles.Trickster], 
                 
                 [CustomRoles.Pestilence,
@@ -215,6 +216,7 @@ public static class Divinator
                 CustomRoles.Arrogance,
                 CustomRoles.KillingMachine,
                 CustomRoles.Berserker,
+                CustomRoles.War,
                 CustomRoles.OverKiller],
                 
                 [CustomRoles.Bloodhound,
@@ -247,7 +249,8 @@ public static class Divinator
                 CustomRoles.Lawyer,
                 CustomRoles.Snitch,
                 CustomRoles.Disperser,
-                CustomRoles.Doctor],
+                CustomRoles.Doctor,
+                CustomRoles.Baker],
                 
                 [CustomRoles.Councillor,
                 CustomRoles.Dictator,
