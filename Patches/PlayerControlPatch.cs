@@ -1328,7 +1328,7 @@ class MurderPlayerPatch
             Logger.Info("The kill was cancelled by the host", "MurderPlayer Prefix");
         }
 
-        if (isSucceeded)
+        if (isSucceeded && AmongUsClient.Instance.AmHost)
         {
             if (target.shapeshifting)
             {
