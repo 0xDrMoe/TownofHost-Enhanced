@@ -65,26 +65,24 @@ public static class Divinator
 
     public static void SendRPC(byte playerId, bool isTemp = false, bool voted = false)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Divinator);
-        writer.Write(isTemp);
-
+        MessageWriter writer;
         if (!isTemp)
         {
+            writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetDivinatorLimit, SendOption.Reliable, -1);
             writer.Write(playerId);
             writer.Write(CheckLimit[playerId]);
             writer.Write(voted);
         }
         else
         {
+            writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetDivinatorTempLimit, SendOption.Reliable, -1);
             writer.Write(playerId);
             writer.Write(TempCheckLimit[playerId]);
         }
         AmongUsClient.Instance.FinishRpcImmediately(writer);
     }
-    public static void ReceiveRPC(MessageReader reader)
+    public static void ReceiveRPC(MessageReader reader, bool isTemp = false)
     {
-        bool isTemp = reader.ReadBoolean();
         byte playerId = reader.ReadByte();
         float limit = reader.ReadSingle();
         if (!isTemp)
@@ -317,7 +315,7 @@ public static class Divinator
                 CustomRoles.Sunnyboy,
                 CustomRoles.Instigator],
                 
-                [CustomRoles.Nemesis,
+                [CustomRoles.Mafia,
                 CustomRoles.Retributionist,
                 CustomRoles.Necromancer,
                 CustomRoles.Gangster,

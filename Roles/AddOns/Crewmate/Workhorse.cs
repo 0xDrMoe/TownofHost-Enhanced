@@ -8,20 +8,18 @@ namespace TOHE.Roles.AddOns.Crewmate;
 public static class Workhorse
 {
     private static readonly int Id = 23730;
-    private static List<byte> playerIdList = [];
-    public static bool IsEnable = false;
-
     public static Color RoleColor = Utils.GetRoleColor(CustomRoles.Workhorse);
+    public static List<byte> playerIdList = [];
+    public static bool IsEnable = false;
 
     private static OptionItem OptionAssignOnlyToCrewmate;
     private static OptionItem OptionNumLongTasks;
     private static OptionItem OptionNumShortTasks;
     private static OptionItem OptionSnitchCanBeWorkhorse;
 
-    private static bool AssignOnlyToCrewmate;
-    private static int NumLongTasks;
-    private static int NumShortTasks;
-
+    public static bool AssignOnlyToCrewmate;
+    public static int NumLongTasks;
+    public static int NumShortTasks;
     public static void SetupCustomOption()
     {
         SetupRoleOptions(Id, TabGroup.Addons, CustomRoles.Workhorse, zeroOne: true);

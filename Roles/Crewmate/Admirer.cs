@@ -1,7 +1,6 @@
 using Hazel;
 using System.Collections.Generic;
 using TOHE.Roles.AddOns.Crewmate;
-using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Double;
 using TOHE.Roles.Neutral;
 using UnityEngine;
@@ -58,8 +57,7 @@ public static class Admirer
 
     private static void SendRPC(byte playerId)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Admirer);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetAdmireLimit, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(AdmirerLimit[playerId]);
         AmongUsClient.Instance.FinishRpcImmediately(writer);

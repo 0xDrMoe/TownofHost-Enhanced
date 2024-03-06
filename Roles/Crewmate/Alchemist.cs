@@ -159,7 +159,7 @@ namespace TOHE.Roles.Crewmate
                         Main.AllPlayerSpeed[player.PlayerId] = Main.AllPlayerSpeed[player.PlayerId] - Speed.GetFloat() + tempSpeed;
                         player.Notify(GetString("AlchemistSpeedOut"));
                         player.MarkDirtySettings();
-                    }, SpeedDuration, "Alchemist: Set Speed to default");
+                    }, SpeedDuration);
                     break;
                 case 5: // Quick fix next sabo
                     // Done when making the potion

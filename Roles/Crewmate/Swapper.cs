@@ -301,8 +301,7 @@ public static class Swapper
     }
     public static void SendSkillRPC(byte playerId)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Swapper);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetSwapperSkill, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(Swappermax[playerId]);
         AmongUsClient.Instance.FinishRpcImmediately(writer);

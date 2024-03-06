@@ -4,7 +4,6 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using System.Collections.Generic;
 using System.Linq;
 using TOHE.Roles.AddOns.Crewmate;
-using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Neutral;
 
 namespace TOHE;
@@ -151,7 +150,7 @@ class RpcSetTasksPatch
         {
             hasCommonTasks = false;
             NumLongTasks = 0;
-            NumShortTasks = Madmate.MadSnitchTasks.GetInt();
+            NumShortTasks = Options.MadSnitchTasks.GetInt();
         }
 
         // GM - no have tasks, Lazy Gay and Lazy have 1 task, FFA all are killers so need to assign any tasks

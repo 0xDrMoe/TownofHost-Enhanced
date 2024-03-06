@@ -48,8 +48,7 @@ public static class Swooper
     private static void SendRPC(PlayerControl pc)
     {
         if (pc.AmOwner) return;
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, pc.GetClientId());
-        writer.WritePacked((int)CustomRoles.Swooper);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetSwooperTimer, SendOption.Reliable, pc.GetClientId());
         writer.Write((InvisTime.TryGetValue(pc.PlayerId, out var x) ? x : -1).ToString());
         writer.Write((lastTime.TryGetValue(pc.PlayerId, out var y) ? y : -1).ToString());
         AmongUsClient.Instance.FinishRpcImmediately(writer);

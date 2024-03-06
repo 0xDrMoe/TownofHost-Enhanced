@@ -121,8 +121,7 @@ public static class Stealth
     }
     private static void SendRPC(SystemTypes? roomType)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Stealth);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.StealthDarken, SendOption.Reliable, -1);
         writer.Write((byte?)roomType ?? byte.MaxValue);
         AmongUsClient.Instance.FinishRpcImmediately(writer);
     }

@@ -1,7 +1,6 @@
 using HarmonyLib;
 using Hazel;
 using System.Linq;
-using TOHE.Roles.AddOns.Common;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using UnityEngine;
@@ -214,7 +213,7 @@ public class SabotageSystemPatch
                 return true;
             }
 
-            if (Fool.IsEnable && player.Is(CustomRoles.Fool))
+            if (player.Is(CustomRoles.Fool))
             {
                 return false;
             }
@@ -311,7 +310,7 @@ public class SabotageSystemPatch
 
             if (systemType is SystemTypes.Comms)
             {
-                if (Camouflager.IsEnable && playerRole.Is(CustomRoles.Camouflager) && !Camouflager.CanUseCommsSabotage)
+                if (playerRole.Is(CustomRoles.Camouflager) && !Camouflager.CanUseCommsSabotage.GetBool())
                     return false;
             }
 

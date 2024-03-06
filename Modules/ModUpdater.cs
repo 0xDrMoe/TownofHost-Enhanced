@@ -1,4 +1,4 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static TOHE.Translator;
 using Newtonsoft.Json.Linq;
-using System.Globalization;
+using System.IO.Compression;
 
 namespace TOHE;
 
@@ -18,11 +18,11 @@ public class ModUpdater
     private static readonly string URL_Github = "https://api.github.com/repos/0xDrMoe/TownofHost-Enhanced";
     //public static readonly string downloadTest = "https://github.com/Pietrodjaowjao/TOHEN-Contributions/releases/download/v123123123/TOHE.dll";
     public static bool hasUpdate = false;
-    //public static bool isNewer = false;
+    public static bool hasOutdate = false;
     public static bool forceUpdate = false;
     public static bool isBroken = false;
     public static bool isChecked = false;
-    public static DateTime? latestVersion = null;
+    public static Version latestVersion = null;
     public static string latestTitle = null;
     public static string downloadUrl = null;
     public static string notice = null;
@@ -32,9 +32,6 @@ public class ModUpdater
     [HarmonyPriority(2)]
     public static void Start_Prefix(/*MainMenuManager __instance*/)
     {
-        if (isChecked) return;
-        //If we are not using it for now, just freaking disable it.
-
         NewVersionCheck();
         DeleteOldFiles();
         InfoPopup = UnityEngine.Object.Instantiate(Twitch.TwitchManager.Instance.TwitchPopup);
@@ -42,7 +39,7 @@ public class ModUpdater
         InfoPopup.TextAreaTMP.GetComponent<RectTransform>().sizeDelta = new(2.5f, 2f);
         if (!isChecked)
         {
-            bool done = CheckReleaseFromGithub(Main.BetaBuildURL.Value != "");
+            bool done = CheckReleaseFromGithub(Main.BetaBuildURL.Value != "").GetAwaiter().GetResult();
             Logger.Warn("Check for updated results: " + done, "CheckRelease");
             Logger.Info("hasupdate: " + hasUpdate, "CheckRelease");
             Logger.Info("forceupdate: " + forceUpdate, "CheckRelease");
@@ -57,7 +54,7 @@ public class ModUpdater
         string result = "";
         HttpClient req = new();
         var res = req.GetAsync(url).Result;
-        Stream stream = res.Content.ReadAsStream();
+        Stream stream = res.Content.ReadAsStreamAsync().Result;
         try
         {
             //获取内容
@@ -70,28 +67,23 @@ public class ModUpdater
         }
         return result;
     }
-    public static bool CheckReleaseFromGithub(bool beta = false)
+    public static async Task<bool> CheckReleaseFromGithub(bool beta = false)
     {
         Logger.Warn("Start checking for updates from Github", "CheckRelease");
         string url = URL_Github + "/releases/latest";
         try
         {
             string result;
-            using var httpClientHandler = new HttpClientHandler();
-            httpClientHandler.UseProxy = true;
-            
-            using (HttpClient client = new(httpClientHandler))
+            using (HttpClient client = new())
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "TOHE Updater");
-                var response = client.GetAsync(new Uri(url), HttpCompletionOption.ResponseContentRead).Result;
-
+                using var response = await client.GetAsync(new Uri(url), HttpCompletionOption.ResponseContentRead);
                 if (!response.IsSuccessStatusCode || response.Content == null)
                 {
                     Logger.Error($"Status Code: {response.StatusCode}", "CheckRelease");
                     return false;
                 }
-
-                result = response.Content.ReadAsStringAsync().Result;
+                result = await response.Content.ReadAsStringAsync();
             }
             JObject data = JObject.Parse(result);
             if (beta)
@@ -102,41 +94,34 @@ public class ModUpdater
             }
             else
             {
-                string publishedAt = data["published_at"]?.ToString();
-                DateTime? latestVersion = DateTime.TryParse(publishedAt, out DateTime parsedDate) ? parsedDate : (DateTime?)null;
-                latestTitle = $"Day: {latestVersion?.Day} Month: {latestVersion?.Month} Year: {latestVersion?.Year}";
-
+                latestVersion = new(data["tag_name"]?.ToString().TrimStart('v'));
+                latestTitle = $"Ver. {latestVersion}";
                 JArray assets = data["assets"].Cast<JArray>();
+                Logger.Info(assets.ToString(), "ModUpdater");
                 for (int i = 0; i < assets.Count; i++)
                 {
-                    string assetName = assets[i]["name"].ToString();
-
-                    if (assetName.ToLower() == "tohe.dll")
+                    if (assets[i]["name"].ToString() == $"TOH-Enhanced.{latestVersion}.zip")
                     {
                         downloadUrl = assets[i]["browser_download_url"].ToString();
-                        Logger.Info($"Github downloadUrl is set to {downloadUrl}", "CheckRelease");
+                        break;
                     }
                 }
-
-                DateTime pluginTimestamp = DateTime.ParseExact(Main.PluginVersion.Substring(5, 4), "MMdd", CultureInfo.InvariantCulture);
-                int year = int.Parse(Main.PluginVersion.Substring(0, 4));
-                pluginTimestamp = pluginTimestamp.AddYears(year - pluginTimestamp.Year);
-                Logger.Info($"Day: {pluginTimestamp.Day} Month: {pluginTimestamp.Month} Year: {pluginTimestamp.Year}", "PluginVersion");
-                hasUpdate = latestVersion?.Date > pluginTimestamp.Date;
+                hasUpdate = latestVersion.CompareTo(Main.version) > 0;
+                hasOutdate = latestVersion.CompareTo(Main.version) < 0;
             }
 
             Logger.Info("hasupdate: " + hasUpdate, "Github");
+            Logger.Info("hasoutdate: " + hasOutdate, "Github");
             Logger.Info("forceupdate: " + forceUpdate, "Github");
             Logger.Info("downloadUrl: " + downloadUrl, "Github");
             Logger.Info("latestVersionl: " + latestVersion, "Github");
             Logger.Info("latestTitle: " + latestTitle, "Github");
 
-            if (hasUpdate && (downloadUrl == null || downloadUrl == ""))
+            if (downloadUrl == null || downloadUrl == "")
             {
                 Logger.Error("Failed to get download address", "CheckRelease");
                 return false;
             }
-
             isChecked = true;
             isBroken = false;
         }
@@ -241,9 +226,9 @@ public class ModUpdater
                     long readLength = 0;
                     int length;
 
-                    while ((length = await stream.ReadAsync(buffer)) != 0)
+                    while ((length = await stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                     {
-                        await fileStream.WriteAsync(buffer.AsMemory(0, length));
+                        await fileStream.WriteAsync(buffer, 0, length);
 
                         readLength += length;
                         double? progress = Math.Round((double)readLength / total * 100, 2, MidpointRounding.ToZero);
@@ -259,7 +244,7 @@ public class ModUpdater
         catch (Exception ex)
         {
             Logger.Error($"Update failed\n{ex}", "DownloadDLL", false);
-            ShowPopup(GetString("updateManually"), StringNames.Close, true, false);
+            ShowPopup(GetString("updateManually"), StringNames.Close, true, true);
             return false;
         }
         return true;
@@ -268,9 +253,6 @@ public class ModUpdater
     {
         try
         {
-            Logger.Info($"DownLoading Github dll from '${url}'", "DownloadDLLGithub");
-            if (url == null || url == "") throw new Exception($"url is empty, cannot update!");
-
             var savePath = "BepInEx/plugins/TOHE.dll.temp";
 
             // Delete the temporary file if it exists
@@ -280,13 +262,10 @@ public class ModUpdater
             }
 
             HttpResponseMessage response;
+            var downloadCallBack = DownloadCallBack;
 
-            using (var httpClientHandler = new HttpClientHandler())
+            using (HttpClient client = new())
             {
-                // Use System Proxy
-                httpClientHandler.UseProxy = true;
-
-                using HttpClient client = new(httpClientHandler);
                 response = await client.GetAsync(url);
             }
 
@@ -295,9 +274,25 @@ public class ModUpdater
                 throw new Exception($"File retrieval failed with status code: {response?.StatusCode}");
             }
 
-            using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            var total = response.Content.Headers.ContentLength ?? 0;
+            using (var stream = await response.Content.ReadAsStreamAsync())
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
             {
-                await response.Content.CopyToAsync(fileStream);
+                // Specify the relative path within the ZIP archive where "TOHE.dll" is located
+                var entryPath = "BepInEx/plugins/TOHE.dll";
+                var entry = archive.GetEntry(entryPath);
+
+                if (entry == null)
+                {
+                    throw new Exception($"'{entryPath}' not found in the ZIP archive");
+                }
+
+                // Extract "TOHE.dll" to the temporary file
+                using (var entryStream = entry.Open())
+                using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+                {
+                    await entryStream.CopyToAsync(fileStream);
+                }
             }
 
             var fileName = Assembly.GetExecutingAssembly().Location;
@@ -308,7 +303,7 @@ public class ModUpdater
         catch (Exception ex)
         {
             Logger.Error($"Update failed\n{ex}", "DownloadDLL", false);
-            ShowPopup(GetString("updateManually"), StringNames.Close, true, false);
+            ShowPopup(GetString("updateManually"), StringNames.Close, true, true);
             return false;
         }
         return true;

@@ -109,8 +109,7 @@ public static class Sheriff
     }
     private static void SendRPC(byte playerId)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Sheriff);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetSheriffShotLimit, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(ShotLimit[playerId]);
         AmongUsClient.Instance.FinishRpcImmediately(writer);
@@ -122,7 +121,7 @@ public static class Sheriff
         if (ShotLimit.ContainsKey(SheriffId))
             ShotLimit[SheriffId] = Limit;
         else
-            ShotLimit.Add(SheriffId, Limit);
+            ShotLimit.Add(SheriffId, ShotLimitOpt.GetInt());
     }
     public static void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = CanUseKillButton(id) ? CurrentKillCooldown[id] : 300f;
     public static bool CanUseKillButton(byte playerId)

@@ -59,8 +59,7 @@ public static class Oracle
     }
     public static void SendRPC(byte playerId, bool isTemp = false)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Oracle);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetOracleLimit, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(isTemp);
         if (!isTemp) writer.Write(CheckLimit[playerId]);

@@ -7,12 +7,9 @@ namespace TOHE.Modules;
 public static class VersionChecker
 {
     public static bool IsSupported { get; private set; } = true;
-    private static bool Ischecked = false;
 
     public static void Check()
     {
-        if (Ischecked) return;
-        
         var amongUsVersion = Version.Parse(Application.version);
         Logger.Info($" {amongUsVersion}", "Among Us Version Check");
 
@@ -26,7 +23,5 @@ public static class VersionChecker
         {
             ErrorText.Instance.AddError(ErrorCode.UnsupportedVersion);
         }
-
-        Ischecked = true;
     }
 }

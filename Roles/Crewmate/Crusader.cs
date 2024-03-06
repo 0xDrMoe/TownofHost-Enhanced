@@ -47,14 +47,7 @@ public static class Crusader
         CrusaderLimit.Remove(playerId);
         CurrentKillCooldown.Remove(playerId);
     }
-    private static void SendRPC(byte playerId)
-    {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Crusader);
-        writer.Write(playerId);
-        writer.Write(CrusaderLimit[playerId]);
-        AmongUsClient.Instance.FinishRpcImmediately(writer);
-    }
+
     public static void ReceiveRPC(MessageReader reader)
     {
         byte PlayerId = reader.ReadByte();
@@ -62,7 +55,7 @@ public static class Crusader
         if (CrusaderLimit.ContainsKey(PlayerId))
             CrusaderLimit[PlayerId] = Limit;
         else
-            CrusaderLimit.Add(PlayerId, Limit);
+            CrusaderLimit.Add(PlayerId, SkillLimitOpt.GetInt());
     }
     public static bool CanUseKillButton(byte playerId)
         => !Main.PlayerStates[playerId].IsDead
@@ -75,7 +68,6 @@ public static class Crusader
         Main.ForCrusade.Remove(target.PlayerId);
         Main.ForCrusade.Add(target.PlayerId);
         CrusaderLimit[killer.PlayerId]--;
-        SendRPC(killer.PlayerId);
         killer.ResetKillCooldown();
         killer.SetKillCooldown();
         if (!Options.DisableShieldAnimations.GetBool()) killer.RpcGuardAndKill(target);

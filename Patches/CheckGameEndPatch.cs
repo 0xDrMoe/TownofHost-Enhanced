@@ -10,7 +10,6 @@ using TOHE.Roles.AddOns.Crewmate;
 using TOHE.Roles.Impostor;
 using TOHE.Roles.Neutral;
 using static TOHE.Translator;
-using TOHE.Roles.AddOns.Common;
 
 namespace TOHE;
 
@@ -549,14 +548,14 @@ class GameEndCheckerForNormal
 
             if (CustomRoles.Sunnyboy.RoleExist() && Main.AllAlivePlayerControls.Length > 1) return false;
             var neutralRoleCounts = new Dictionary<CountTypes, int>();
-            var allAlivePlayerList = Main.AllAlivePlayerControls.ToArray();
+            var apcList = Main.AllAlivePlayerControls.ToArray();
             int dual = 0, impCount = 0, crewCount = 0;
 
-            foreach (var pc in allAlivePlayerList)
+            foreach (var pc in apcList)
             {
                 if (pc == null) continue;
 
-                dual = Schizophrenic.IsExistInGame(pc) ? 1 : 0;
+                dual = pc.Is(CustomRoles.DualPersonality) ? 1 : 0;
                 var countType = Main.PlayerStates[pc.PlayerId].countTypes;
                 switch (countType)
                 {

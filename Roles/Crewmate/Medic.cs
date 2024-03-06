@@ -93,8 +93,7 @@ public static class Medic
     }
     private static void SendRPC(byte playerId)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.Medic);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SetMedicalerProtectLimit, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(ProtectLimit[playerId]);
         AmongUsClient.Instance.FinishRpcImmediately(writer);

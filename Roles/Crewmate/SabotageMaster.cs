@@ -156,8 +156,7 @@ public static class SabotageMaster
 
     public static void SendRPC(byte playerId)
     {
-        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-        writer.WritePacked((int)CustomRoles.SabotageMaster);
+        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncSabotageMasterSkill, SendOption.Reliable, -1);
         writer.Write(playerId);
         writer.Write(UsedSkillCount[playerId]);
         AmongUsClient.Instance.FinishRpcImmediately(writer);

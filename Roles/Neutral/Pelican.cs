@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TOHE.Roles.Crewmate;
 using TOHE.Roles.Double;
-using TOHE.Roles.Impostor;
 using UnityEngine;
 using static TOHE.Translator;
 
@@ -93,11 +92,6 @@ public static class Pelican
         if (!pc.Is(CustomRoles.Pelican) || GameStates.IsMeeting) return false;
 
         var target = Utils.GetPlayerById(id);
-
-        if (Penguin.AbductVictim != null)
-            if (target.Is(CustomRoles.Penguin) || id == Penguin.AbductVictim.PlayerId)
-                return false;
-
         return target != null && target.CanBeTeleported() && !target.Is(CustomRoles.Pestilence) && !Medic.ProtectList.Contains(target.PlayerId) && !target.Is(CustomRoles.GM) && !IsEaten(pc, id) && !IsEaten(id);
     }
     public static Vector2 GetBlackRoomPSForPelican()
@@ -132,7 +126,6 @@ public static class Pelican
             pc.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.NiceMini), GetString("CantEat")));
             return;
         }
-
         if (!eatenList.ContainsKey(pc.PlayerId)) eatenList.Add(pc.PlayerId, []);
         eatenList[pc.PlayerId].Add(target.PlayerId);
 
