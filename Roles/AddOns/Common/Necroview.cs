@@ -4,7 +4,7 @@ namespace TOHE.Roles.AddOns.Common;
 
 public static class Necroview
 {
-    private static readonly int Id = 19600;
+    private const int Id = 19600;
 
     public static OptionItem ImpCanBeNecroview;
     public static OptionItem CrewCanBeNecroview;
@@ -30,7 +30,7 @@ public static class Necroview
                 || SubRole.Is(CustomRoles.Egoist)
                 || SubRole.Is(CustomRoles.Recruit)
                 || SubRole.Is(CustomRoles.Soulless))
-                return Main.roleColors[CustomRoles.SwordsMan];
+                return Main.roleColors[CustomRoles.Knight];
         }
 
         if (customRole.IsImpostorTeamV2() || customRole.IsMadmate())
@@ -43,7 +43,7 @@ public static class Necroview
             return Main.roleColors[CustomRoles.Bait];
         }
 
-        return Main.roleColors[CustomRoles.SwordsMan]; 
+        return Main.roleColors[CustomRoles.Knight];
     }
 }
 
