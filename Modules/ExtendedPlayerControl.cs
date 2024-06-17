@@ -998,7 +998,7 @@ static class ExtendedPlayerControl
     }
     public static void RpcRandomVentTeleport(this PlayerControl player)
     {
-        var vents = UnityEngine.Object.FindObjectsOfType<Vent>();
+        var vents = ShipStatus.Instance.AllVents;
         var rand = IRandom.Instance;
         var vent = vents[rand.Next(0, vents.Count)];
 
