@@ -1,4 +1,4 @@
-using Hazel;
+﻿using Hazel;
 using System.Text;
 using System;
 using TOHE.Roles.Core;
@@ -10,6 +10,7 @@ using InnerNet;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Oracle : RoleBase
 {
     //===========================SETUP================================\\

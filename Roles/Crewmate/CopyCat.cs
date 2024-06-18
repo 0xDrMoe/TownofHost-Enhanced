@@ -1,9 +1,10 @@
-using TOHE.Roles.Core;
+﻿using TOHE.Roles.Core;
 using static TOHE.Options;
 using static TOHE.Translator;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class CopyCat : RoleBase
 {
     //===========================SETUP================================\\

@@ -9,6 +9,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Medic : RoleBase
 {
     //===========================SETUP================================\\
@@ -29,6 +30,7 @@ internal class Medic : RoleBase
 
     private static byte TempMarkProtected;
 
+    [Obfuscation(Exclude = true)]
     private enum SelectOptionsList
     {
         Medic_SeeMedicAndTarget,
@@ -37,6 +39,7 @@ internal class Medic : RoleBase
         Medic_SeeNoOne
     }
 
+    [Obfuscation(Exclude = true)]
     private enum ShieldDeactivationIsVisibleList
     {
         MedicShieldDeactivationIsVisible_Immediately,
@@ -258,3 +261,4 @@ internal class Medic : RoleBase
     }
     public override Sprite GetKillButtonSprite(PlayerControl player, bool shapeshifting) => CustomButton.Get("Shield");
 }
+

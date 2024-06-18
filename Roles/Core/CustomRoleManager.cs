@@ -477,3 +477,4 @@ public static class CustomRoleManager
         OtherCollectionsSet = true;
     }
 }
+

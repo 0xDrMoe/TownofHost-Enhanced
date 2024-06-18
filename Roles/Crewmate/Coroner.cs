@@ -10,6 +10,7 @@ using InnerNet;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Coroner : RoleBase
 {
     //===========================SETUP================================\\
@@ -271,3 +272,4 @@ internal class Coroner : RoleBase
         return ProgressText.ToString();
     }
 }
+

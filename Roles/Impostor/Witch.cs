@@ -1,4 +1,4 @@
-using Hazel;
+﻿using Hazel;
 using System.Text;
 using TOHE.Modules;
 using static TOHE.Options;
@@ -6,6 +6,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Witch : RoleBase
 {
     //===========================SETUP================================\\
@@ -22,6 +23,7 @@ internal class Witch : RoleBase
     private static readonly Dictionary<byte, bool> SpellMode = [];
     private static readonly Dictionary<byte, HashSet<byte>> SpelledPlayer = [];
 
+    [Obfuscation(Exclude = true)]
     private enum SwitchTriggerList
     {
         TriggerKill,

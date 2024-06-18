@@ -1,4 +1,4 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using TOHE.Roles.AddOns.Crewmate;
 using TOHE.Roles.Core;
 using TOHE.Roles.Crewmate;
@@ -8,6 +8,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Jackal : RoleBase
 {
     //===========================SETUP================================\\
@@ -35,12 +36,15 @@ internal class Jackal : RoleBase
     public static OptionItem CanUseSabotageSK;
     private static OptionItem SidekickCanKillJackal;
     private static OptionItem SidekickCanKillSidekick;
+
+    [Obfuscation(Exclude = true)]
     private enum SidekickAssignModeSelectList
     {
         Jackal_SidekickAssignMode_SidekickAndRecruit,
         Jackal_SidekickAssignMode_Sidekick,
         Jackal_SidekickAssignMode_Recruit,
     }
+    [Obfuscation(Exclude = true)]
     private enum SidekickCountModeSelectList
     {
         Jackal_SidekickCountMode_Jackal,
@@ -262,3 +266,4 @@ internal class Jackal : RoleBase
         return false;
     }
 }
+

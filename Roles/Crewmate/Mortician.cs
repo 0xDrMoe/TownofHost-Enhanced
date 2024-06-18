@@ -6,6 +6,8 @@ using static TOHE.MeetingHudStartPatch;
 using static TOHE.Translator;
 
 namespace TOHE.Roles.Crewmate;
+
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Mortician : RoleBase
 {
     //===========================SETUP================================\\

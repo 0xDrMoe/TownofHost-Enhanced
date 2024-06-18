@@ -6,6 +6,7 @@ using static TOHE.Utils;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Disperser : RoleBase
 {
     //===========================SETUP================================\\

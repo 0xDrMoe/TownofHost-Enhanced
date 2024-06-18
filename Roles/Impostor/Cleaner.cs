@@ -2,6 +2,7 @@
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Cleaner : RoleBase
 {
     //===========================SETUP================================\\
@@ -66,3 +67,4 @@ internal class Cleaner : RoleBase
         hud.ReportButton.OverrideText(Translator.GetString("CleanerReportButtonText"));
     }
 }
+

@@ -1,9 +1,10 @@
-using Hazel;
+﻿using Hazel;
 using UnityEngine;
 using static TOHE.Options;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Consigliere : RoleBase
 {
     //===========================SETUP================================\\

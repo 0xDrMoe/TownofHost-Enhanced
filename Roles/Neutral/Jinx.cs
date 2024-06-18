@@ -1,10 +1,11 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using UnityEngine;
 using static TOHE.Options;
 using TOHE.Roles.Core;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Jinx : RoleBase
 {
     //===========================SETUP================================\\
@@ -73,3 +74,4 @@ internal class Jinx : RoleBase
     
     private bool CanJinx(byte id) => AbilityLimit > 0;
 }
+

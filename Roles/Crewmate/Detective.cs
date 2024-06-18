@@ -6,6 +6,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Detective : RoleBase
 {
     //===========================SETUP================================\\
@@ -89,3 +90,4 @@ internal class Detective : RoleBase
         InfoAboutDeadPlayerAndKiller.Clear();
     }
 }
+

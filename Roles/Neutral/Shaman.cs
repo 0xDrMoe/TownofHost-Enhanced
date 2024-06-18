@@ -4,6 +4,7 @@ using TOHE.Roles.Core;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Shaman : RoleBase
 {
     //===========================SETUP================================\\
@@ -81,3 +82,4 @@ internal class Shaman : RoleBase
         => target.IsAlive() && ShamanTargetChoosen ? Utils.GetPlayerById(ShamanTarget) : target;
     
 }
+

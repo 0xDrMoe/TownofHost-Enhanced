@@ -2,6 +2,7 @@
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Godfather : RoleBase
 {
     //===========================SETUP================================\\
@@ -17,6 +18,7 @@ internal class Godfather : RoleBase
 
     private static readonly HashSet<byte> GodfatherTarget = [];
 
+    [Obfuscation(Exclude = true)]
     private enum GodfatherChangeModeList
     {
         GodfatherCount_Refugee,
@@ -62,3 +64,4 @@ internal class Godfather : RoleBase
         GodfatherTarget.Add(voteTarget.PlayerId);
     }
 }
+

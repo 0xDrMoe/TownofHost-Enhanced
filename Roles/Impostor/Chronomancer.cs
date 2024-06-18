@@ -7,6 +7,7 @@ using AmongUs.GameOptions;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Chronomancer : RoleBase
 {
     //===========================SETUP================================\\

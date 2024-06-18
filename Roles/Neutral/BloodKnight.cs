@@ -1,4 +1,4 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using Hazel;
 using InnerNet;
 using System.Text;
@@ -8,6 +8,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class BloodKnight : RoleBase
 {
     //===========================SETUP================================\\

@@ -1,5 +1,6 @@
 ﻿namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Visionary : RoleBase
 {
     //===========================SETUP================================\\
@@ -56,3 +57,4 @@ internal class Visionary : RoleBase
         return Main.roleColors[CustomRoles.Knight];
     }
 }
+

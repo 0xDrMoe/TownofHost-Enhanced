@@ -1,8 +1,9 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using static TOHE.Options;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Maverick : RoleBase
 {
     //===========================SETUP================================\\
@@ -43,3 +44,4 @@ internal class Maverick : RoleBase
     public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = KillCooldown.GetFloat();
     public override void ApplyGameOptions(IGameOptions opt, byte id) => opt.SetVision(HasImpostorVision.GetBool());
 }
+

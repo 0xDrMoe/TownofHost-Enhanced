@@ -1,4 +1,4 @@
-using Hazel;
+﻿using Hazel;
 using Il2CppSystem;
 using InnerNet;
 using TOHE.Modules;
@@ -9,6 +9,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Follower : RoleBase
 {
     //===========================SETUP================================\\

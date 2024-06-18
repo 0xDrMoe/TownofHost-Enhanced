@@ -1,4 +1,4 @@
-using Hazel;
+﻿using Hazel;
 using System;
 using System.Text.RegularExpressions;
 using TOHE.Modules.ChatManager;
@@ -9,6 +9,7 @@ using static TOHE.CheckForEndVotingPatch;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Swapper : RoleBase
 {
     //===========================SETUP================================\\

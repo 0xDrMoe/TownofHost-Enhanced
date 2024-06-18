@@ -1,6 +1,7 @@
 ﻿
 namespace TOHE.Roles.Vanilla;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class ImpostorTOHE : RoleBase
 {
     //===========================SETUP================================\\
@@ -26,3 +27,4 @@ internal class ImpostorTOHE : RoleBase
         playerIdList.Add(playerId);
     }
 }
+

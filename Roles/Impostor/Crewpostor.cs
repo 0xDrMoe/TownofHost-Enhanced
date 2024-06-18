@@ -5,6 +5,7 @@ using AmongUs.GameOptions;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Crewpostor : RoleBase
 {
     //===========================SETUP================================\\
@@ -155,3 +156,4 @@ internal class Crewpostor : RoleBase
         return true;
     }
 }
+

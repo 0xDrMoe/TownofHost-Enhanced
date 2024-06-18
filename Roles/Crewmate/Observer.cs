@@ -2,6 +2,7 @@
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Observer : RoleBase
 {
     //===========================SETUP================================\\
@@ -38,3 +39,4 @@ internal class Observer : RoleBase
         }
     }
 }
+

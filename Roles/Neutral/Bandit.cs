@@ -8,6 +8,7 @@ using static TOHE.Options;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Bandit : RoleBase
 {
     //===========================SETUP================================\\
@@ -29,6 +30,7 @@ internal class Bandit : RoleBase
     private float killCooldown;
     private readonly Dictionary<byte, CustomRoles> Targets = [];
 
+    [Obfuscation(Exclude = true)]
     private enum BanditStealModeOptList
     {
         BanditStealMode_OnMeeting,
@@ -218,3 +220,4 @@ internal class Bandit : RoleBase
     }
     public override string GetProgressText(byte playerId, bool comms) => Utils.ColorString(AbilityLimit > 0 ? Utils.GetRoleColor(CustomRoles.Bandit).ShadeColor(0.25f) : Color.gray, $"({AbilityLimit})");
 }
+

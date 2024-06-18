@@ -5,6 +5,7 @@ using static TOHE.Utils;
 
 namespace TOHE.Roles._Ghosts_.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Minion : RoleBase
 {
     //===========================SETUP================================\\
@@ -69,4 +70,5 @@ internal class Minion : RoleBase
         return false;
     }
 }
+
 

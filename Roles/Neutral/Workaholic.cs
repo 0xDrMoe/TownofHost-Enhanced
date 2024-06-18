@@ -6,6 +6,7 @@ using static TOHE.MeetingHudStartPatch;
 //Thanks TOH_Y
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Workaholic : RoleBase
 {
     //===========================SETUP================================\\
@@ -126,3 +127,4 @@ internal class Workaholic : RoleBase
         return false;
     }
 }
+

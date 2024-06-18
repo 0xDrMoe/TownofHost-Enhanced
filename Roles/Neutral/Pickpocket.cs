@@ -1,9 +1,10 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using static TOHE.Options;
 using static TOHE.Translator;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Pickpocket : RoleBase
 {
     //===========================SETUP================================\\
@@ -60,3 +61,4 @@ internal class Pickpocket : RoleBase
             .ToString("0.0#####")));
     }
 }
+

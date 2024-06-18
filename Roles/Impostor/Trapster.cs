@@ -1,5 +1,6 @@
 ﻿namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Trapster : RoleBase
 {
     //===========================SETUP================================\\
@@ -96,3 +97,4 @@ internal class Trapster : RoleBase
         return true;
     }
 }
+

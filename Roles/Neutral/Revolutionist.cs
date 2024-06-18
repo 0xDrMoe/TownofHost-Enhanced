@@ -9,6 +9,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Revolutionist : RoleBase
 {
     //===========================SETUP================================\\
@@ -324,3 +325,4 @@ internal class Revolutionist : RoleBase
         return false;
     }
 }
+

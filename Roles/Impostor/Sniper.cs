@@ -1,4 +1,4 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using Hazel;
 using TOHE.Modules;
 using UnityEngine;
@@ -6,6 +6,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Sniper : RoleBase
 {
     //===========================SETUP================================\\
@@ -367,3 +368,4 @@ internal class Sniper : RoleBase
             hud.AbilityButton?.OverrideText(GetString(bulletCount[playerId] <= 0 ? "DefaultShapeshiftText" : "SniperSnipeButtonText"));
     }
 }
+

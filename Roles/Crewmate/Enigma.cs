@@ -4,6 +4,7 @@ using static TOHE.MeetingHudStartPatch;
 
 namespace TOHE.Roles.Crewmate;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Enigma : RoleBase
 {
     //===========================SETUP================================\\
@@ -518,6 +519,7 @@ internal class Enigma : RoleBase
         }
     }
 
+    [Obfuscation(Exclude = true)]
     private enum EnigmaClueType
     {
         HatClue,
@@ -537,3 +539,4 @@ internal class Enigma : RoleBase
         //RandomClue
     }
 }
+

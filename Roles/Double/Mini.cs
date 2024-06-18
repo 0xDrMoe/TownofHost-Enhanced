@@ -1,4 +1,4 @@
-using Hazel;
+﻿using Hazel;
 using InnerNet;
 using System;
 using TOHE.Roles.Core;
@@ -6,6 +6,8 @@ using static TOHE.Translator;
 using static TOHE.Utils;
 
 namespace TOHE.Roles.Double;
+
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Mini : RoleBase
 {
     //===========================SETUP================================\\

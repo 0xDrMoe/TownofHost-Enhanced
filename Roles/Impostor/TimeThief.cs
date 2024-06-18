@@ -1,5 +1,6 @@
-namespace TOHE.Roles.Impostor;
+﻿namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class TimeThief : RoleBase
 {
     //===========================SETUP================================\\

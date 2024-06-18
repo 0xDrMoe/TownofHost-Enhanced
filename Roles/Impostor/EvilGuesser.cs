@@ -2,6 +2,7 @@
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class EvilGuesser : RoleBase
 {
     //===========================SETUP================================\\
@@ -87,3 +88,4 @@ internal class EvilGuesser : RoleBase
         return false;
     }
 }
+

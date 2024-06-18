@@ -6,6 +6,7 @@ using static TOHE.Translator;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Eraser : RoleBase
 {
     //===========================SETUP================================\\
@@ -138,3 +139,4 @@ internal class Eraser : RoleBase
             };
     }
 }
+

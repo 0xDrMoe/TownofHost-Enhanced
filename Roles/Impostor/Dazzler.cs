@@ -1,4 +1,4 @@
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using TOHE.Roles.AddOns.Common;
 using static TOHE.Options;
 using static TOHE.Translator;
@@ -6,6 +6,7 @@ using static TOHE.Utils;
 
 namespace TOHE.Roles.Impostor;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Dazzler : RoleBase
 {
     //===========================SETUP================================\\

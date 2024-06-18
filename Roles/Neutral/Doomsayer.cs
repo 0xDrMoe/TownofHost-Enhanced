@@ -7,6 +7,7 @@ using InnerNet;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Doomsayer : RoleBase
 {
     //===========================SETUP================================\\

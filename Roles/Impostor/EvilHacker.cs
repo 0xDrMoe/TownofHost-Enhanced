@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using Hazel;
 using InnerNet;
@@ -10,6 +10,8 @@ using static TOHE.Options;
 namespace TOHE.Roles.Impostor;
 
 // Ported from: https://github.com/tukasa0001/TownOfHost/blob/main/Roles/Impostor/EvilHacker.cs
+
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class EvilHacker : RoleBase
 {
     //===========================SETUP================================\\
@@ -26,6 +28,7 @@ internal class EvilHacker : RoleBase
 
     private static byte player = 0;
 
+    [Obfuscation(Exclude = true)]
     public enum OptionName
     {
         EvilHackerCanSeeDeadMark,
@@ -225,3 +228,4 @@ internal class EvilHacker : RoleBase
         public SystemTypes Room { get; init; }
     }
 }
+

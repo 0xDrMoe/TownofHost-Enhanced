@@ -10,6 +10,7 @@ using static TOHE.MeetingHudStartPatch;
 
 namespace TOHE.Roles.Neutral;
 
+[Obfuscation(Exclude = true, ApplyToMembers = false)]
 internal class Quizmaster : RoleBase
 {
     //===========================SETUP================================\\
@@ -737,6 +738,7 @@ class SabotageQuestion : QuizQuestionBase
     }
 }
 
+[Obfuscation(Exclude = true)]
 public enum QuizmasterQuestionType
 {
     FirstRoundSabotageQuestion,
@@ -758,6 +760,7 @@ public enum QuizmasterQuestionType
     PlrDeathKillerFactionQuestion,
 }
 
+[Obfuscation(Exclude = true)]
 public enum Sabotages
 {
     None = -1,
