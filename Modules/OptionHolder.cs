@@ -584,8 +584,29 @@ public static class Options
     }
     public static float GetRoleChance(CustomRoles role)
     {
-        return CustomRoleSpawnChances.TryGetValue(role, out var option) ? option.GetValue()/* / 10f */ : roleSpawnChances[role];
+        return CustomRoleSpawnChances.TryGetValue(role, out var option) ? option.GetValue() : roleSpawnChances[role];
     }
+    public static void SetRoleChance(CustomRoles role, float chance)
+    {
+        if (chance < 0f)
+        {
+            chance = 20f; // Reset
+        }
+        if (chance > 100f)
+        {
+            chance = 0f;
+        }
+
+        if (CustomRoleSpawnChances.TryGetValue(role, out var option))
+        {
+            option.SetValue((int)chance);
+        }
+        else
+        {
+            roleSpawnChances[role] = chance;
+        }
+    }
+
     public static void Load()
     {
         //#######################################
