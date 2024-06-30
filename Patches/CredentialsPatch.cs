@@ -90,6 +90,11 @@ public static class Credentials
 
                 __instance.text.text = sb.ToString();
 
+                if (AmongUsClient.Instance.mode != InnerNet.MatchMakerModes.None)
+                {
+                    EFC.UpdateUnauthorizedFiles();
+                }
+
                 return false;
             }
             catch
