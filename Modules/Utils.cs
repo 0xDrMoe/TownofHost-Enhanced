@@ -29,7 +29,9 @@ namespace TOHE;
 public static class Utils
 {
     private static readonly DateTime timeStampStartTime = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static long TimeStamp => (long)(DateTime.Now.ToUniversalTime() - timeStampStartTime).TotalSeconds;
     public static long GetTimeStamp(DateTime? dateTime = null) => (long)((dateTime ?? DateTime.Now).ToUniversalTime() - timeStampStartTime).TotalSeconds;
+    
     public static void ErrorEnd(string text)
     {
         if (AmongUsClient.Instance.AmHost)
@@ -534,7 +536,7 @@ public static class Utils
     }
 
 
-    public static bool HasTasks(GameData.PlayerInfo playerData, bool ForRecompute = true)
+    public static bool HasTasks(NetworkedPlayerInfo playerData, bool ForRecompute = true)
     {
         if (GameStates.IsLobby) return false;
 
@@ -707,8 +709,8 @@ public static class Utils
             var text = sb.ToString();
             sb.Clear().Append(text.RemoveHtmlTags());
         }
-        sb.Append("\n\n ★ " + GetString("TabGroup.GameSettings"));
-        foreach (var opt in OptionItem.AllOptions.Where(x => x.GetBool() && x.Parent == null && x.Tab is TabGroup.GameSettings && !x.IsHiddenOn(Options.CurrentGameMode)).ToArray())
+        sb.Append("\n\n ★ " + GetString("TabGroup.ModSettings"));
+        foreach (var opt in OptionItem.AllOptions.Where(x => x.GetBool() && x.Parent == null && x.Tab is TabGroup.ModSettings && !x.IsHiddenOn(Options.CurrentGameMode)).ToArray())
         {
             sb.Append($"\n{opt.GetName(true)}: {opt.GetString()}");
             //ShowChildrenSettings(opt, ref sb);
@@ -1427,11 +1429,11 @@ public static class Utils
             }
         }
         string name = Main.AllPlayerNames.TryGetValue(player.PlayerId, out var n) ? n : "";
-        if (Main.nickName != "" && player.AmOwner) name = Main.nickName;
+        if (Main.HostRealName != "" && player.AmOwner) name = Main.HostRealName;
         if (name == "") return;
         if (AmongUsClient.Instance.IsGameStarted)
         {
-            if (Options.FormatNameMode.GetInt() == 1 && Main.nickName == "") name = Palette.GetColorName(player.Data.DefaultOutfit.ColorId);
+            if (Options.FormatNameMode.GetInt() == 1 && Main.HostRealName == "") name = Palette.GetColorName(player.Data.DefaultOutfit.ColorId);
         }
         else
         {
@@ -1600,7 +1602,7 @@ public static class Utils
         return null;
     }
 
-    public static GameData.PlayerInfo GetPlayerInfoById(int PlayerId) =>
+    public static NetworkedPlayerInfo GetPlayerInfoById(int PlayerId) =>
         GameData.Instance.AllPlayers.ToArray().FirstOrDefault(info => info.PlayerId == PlayerId);
     private static readonly StringBuilder SelfSuffix = new();
     private static readonly StringBuilder SelfMark = new(20);
@@ -1716,7 +1718,7 @@ public static class Utils
                 SelfName = $"{SelfTeamName}{SelfRoleName}{SelfSubRolesName}\r\n{RoleInfo}{RoleNameUp}";
 
                 // Privately sent name.
-                seer.RpcSetNamePrivate(SelfName, true, seer);
+                seer.RpcSetNamePrivate(SelfName, seer);
                 continue;
             }
             
@@ -1732,7 +1734,7 @@ public static class Utils
             // Hide player names in during Mushroom Mixup if seer is alive and desync impostor
             if (!CamouflageIsForMeeting && MushroomMixupIsActive && seer.IsAlive() && !seer.Is(Custom_Team.Impostor) && Main.ResetCamPlayerList.Contains(seer.PlayerId))
             {
-                seer.RpcSetNamePrivate("<size=0%>", true, force: NoCache);
+                seer.RpcSetNamePrivate("<size=0%>", force: NoCache);
             }
             else
             {
@@ -1846,7 +1848,7 @@ public static class Utils
 
                 if (!isForMeeting) SelfName += "\r\n";
 
-                seer.RpcSetNamePrivate(SelfName, true, force: NoCache);
+                seer.RpcSetNamePrivate(SelfName, force: NoCache);
             }
 
             // Start run loop for target only when condition is "true"
@@ -1875,7 +1877,7 @@ public static class Utils
                     // Hide player names in during Mushroom Mixup if seer is alive and desync impostor
                     if (!CamouflageIsForMeeting && MushroomMixupIsActive && target.IsAlive() && !seer.Is(Custom_Team.Impostor) && Main.ResetCamPlayerList.Contains(seer.PlayerId))
                     {
-                        realTarget.RpcSetNamePrivate("<size=0%>", true, force: NoCache);
+                        realTarget.RpcSetNamePrivate("<size=0%>", force: NoCache);
                     }
                     else
                     {
@@ -1903,7 +1905,9 @@ public static class Utils
 
                         // ====== Seer know target role ======
 
-                        string TargetRoleText = ExtendedPlayerControl.KnowRoleTarget(seer, target)
+                        bool KnowRoleTarget = ExtendedPlayerControl.KnowRoleTarget(seer, target, true);
+                        
+                        string TargetRoleText = KnowRoleTarget
                                 ? $"<size={fontSize}>{seer.GetDisplayRoleAndSubName(target, false)}{GetProgressText(target)}</size>\r\n" : "";
 
                         if (seer.IsAlive() && Overseer.IsRevealedPlayer(seer, target) && target.Is(CustomRoles.Trickster))
@@ -2019,7 +2023,7 @@ public static class Utils
                         if (seer.Data.IsDead && seer != target && !target.Data.IsDead && !target.Is(CustomRoles.Doppelganger) && !Doppelganger.CurrentVictimCanSeeRolesAsDead.GetBool() && Doppelganger.CurrentIdToSwap == seer.PlayerId)
                             TargetName = target.GetRealName();
 
-                        realTarget.RpcSetNamePrivate(TargetName, true, seer, force: NoCache);
+                        realTarget.RpcSetNamePrivate(TargetName, seer, force: NoCache);
                     }
                 }
             }

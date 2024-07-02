@@ -62,7 +62,7 @@ internal class Doomsayer : RoleBase
         MisguessRolePrevGuessRoleUntilNextMeeting = BooleanOptionItem.Create(Id + 20, "DoomsayerMisguessRolePrevGuessRoleUntilNextMeeting", true, TabGroup.NeutralRoles, true)
             .SetParent(DoesNotSuicideWhenMisguessing);
 
-        ImpostorVision = BooleanOptionItem.Create(Id + 25, "ImpostorVision", true, TabGroup.NeutralRoles, false)
+        ImpostorVision = BooleanOptionItem.Create(Id + 25, GeneralOption.ImpostorVision, true, TabGroup.NeutralRoles, false)
             .SetParent(Options.CustomRoleSpawnChances[CustomRoles.Doomsayer]);
         DoomsayerTryHideMsg = BooleanOptionItem.Create(Id + 21, "DoomsayerTryHideMsg", true, TabGroup.NeutralRoles, true)
             .SetColor(Color.green)
@@ -118,7 +118,7 @@ internal class Doomsayer : RoleBase
         }
     }
     
-    public override void OnReportDeadBody(PlayerControl goku, GameData.PlayerInfo solos)
+    public override void OnReportDeadBody(PlayerControl goku, NetworkedPlayerInfo solos)
     {
         if (!AdvancedSettings.GetBool()) return;
 

@@ -22,8 +22,8 @@ internal class DollMaster : RoleBase
     private static bool WaitToUnPossess = false;
     public static PlayerControl controllingTarget = null; // Personal possessed player identifier for reference.
     public static PlayerControl DollMasterTarget = null; // Personal possessed player identifier for reference.
-    public static GameData.PlayerOutfit controllingOutfit = null;
-    public static GameData.PlayerOutfit DollMasterOutfit = null;
+    public static NetworkedPlayerInfo.PlayerOutfit controllingOutfit = null;
+    public static NetworkedPlayerInfo.PlayerOutfit DollMasterOutfit = null;
     private static float originalSpeed = float.MinValue;
     private static Vector2 controllingTargetPos = new(0, 0);
     private static Vector2 DollMasterPos = new(0, 0);
@@ -37,7 +37,7 @@ internal class DollMaster : RoleBase
     public override void SetupCustomOption()
     {
         SetupSingleRoleOptions(Id, TabGroup.ImpostorRoles, CustomRoles.DollMaster);
-        DefaultKillCooldown = FloatOptionItem.Create(Id + 10, "KillCooldown", new(0f, 180f, 2.5f), 25f, TabGroup.ImpostorRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.DollMaster])
+        DefaultKillCooldown = FloatOptionItem.Create(Id + 10, GeneralOption.KillCooldown, new(0f, 180f, 2.5f), 25f, TabGroup.ImpostorRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.DollMaster])
             .SetValueFormat(OptionFormat.Seconds);
         ShapeshiftCooldown = FloatOptionItem.Create(Id + 11, "DollMasterPossessionCooldown", new(0f, 180f, 2.5f), 25f, TabGroup.ImpostorRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.DollMaster])
             .SetValueFormat(OptionFormat.Seconds);
@@ -156,7 +156,7 @@ internal class DollMaster : RoleBase
     }
 
     // Prepare for a meeting if possessing.
-    public override void OnReportDeadBody(PlayerControl pc, GameData.PlayerInfo target) // Fix crap when meeting gets called.
+    public override void OnReportDeadBody(PlayerControl pc, NetworkedPlayerInfo target) // Fix crap when meeting gets called.
     {
         if (IsControllingPlayer && controllingTarget != null && DollMasterTarget != null)
         {
@@ -167,7 +167,7 @@ internal class DollMaster : RoleBase
     }
 
     // If Dollmaster reports a body or is forced to while possessing redirect it to possessed player
-    public override bool OnCheckReportDeadBody(PlayerControl reporter, GameData.PlayerInfo deadBody, PlayerControl killer)
+    public override bool OnCheckReportDeadBody(PlayerControl reporter, NetworkedPlayerInfo deadBody, PlayerControl killer)
     {
         if (controllingTarget == null || DollMasterTarget == null) return true;
 
@@ -372,9 +372,9 @@ internal class DollMaster : RoleBase
     // Possess Player
     private static void Possess(PlayerControl pc, PlayerControl target, bool shouldAnimate = false)
     {
-        DollMasterOutfit = new GameData.PlayerOutfit()
+        DollMasterOutfit = new NetworkedPlayerInfo.PlayerOutfit()
             .Set(pc.GetRealName(), pc.CurrentOutfit.ColorId, pc.CurrentOutfit.HatId, pc.CurrentOutfit.SkinId, pc.CurrentOutfit.VisorId, pc.CurrentOutfit.PetId, pc.CurrentOutfit.NamePlateId);
-        controllingOutfit = new GameData.PlayerOutfit()
+        controllingOutfit = new NetworkedPlayerInfo.PlayerOutfit()
             .Set(target.GetRealName(), target.CurrentOutfit.ColorId, target.CurrentOutfit.HatId, target.CurrentOutfit.SkinId, target.CurrentOutfit.VisorId, target.CurrentOutfit.PetId, target.CurrentOutfit.NamePlateId);
 
         (target.MyPhysics.FlipX, pc.MyPhysics.FlipX) = (pc.MyPhysics.FlipX, target.MyPhysics.FlipX); // Copy the players directions that they are facing, Note this only works for modded clients!
@@ -437,7 +437,7 @@ internal class DollMaster : RoleBase
     }
 
     // Set players cosmetics.
-    private static void RpcChangeSkin(PlayerControl pc, GameData.PlayerOutfit newOutfit)
+    private static void RpcChangeSkin(PlayerControl pc, NetworkedPlayerInfo.PlayerOutfit newOutfit)
     {
         if (newOutfit is null) return;
 
@@ -451,7 +451,7 @@ internal class DollMaster : RoleBase
 
         pc.SetColor(newOutfit.ColorId);
         sender.AutoStartRpc(pc.NetId, (byte)RpcCalls.SetColor)
-        .Write(newOutfit.ColorId)
+        .Write((byte)newOutfit.ColorId)
         .EndRpc();
 
         pc.SetHat(newOutfit.HatId, newOutfit.ColorId);

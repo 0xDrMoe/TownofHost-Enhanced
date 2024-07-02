@@ -11,26 +11,38 @@ using static TOHE.Translator;
 
 namespace TOHE;
 
+[HarmonyPatch(typeof(GameManager), nameof(GameManager.CheckEndGameViaTasks))]
+class CheckGameEndPatch
+{
+    public static bool Prefix(ref bool __result)
+    {
+        if (GameEndCheckerForNormal.ShouldNotCheck)
+        {
+            __result = false;
+            return false;
+        }
+
+        __result = GameEndCheckerForNormal.predicate?.CheckGameEndByTask(out _) ?? false;
+        return false;
+    }
+}
 [HarmonyPatch(typeof(LogicGameFlowNormal), nameof(LogicGameFlowNormal.CheckEndCriteria))]
 class GameEndCheckerForNormal
 {
-    private static GameEndPredicate predicate;
+    public static GameEndPredicate predicate;
     public static bool ShowAllRolesWhenGameEnd = false;
+    public static bool ShouldNotCheck = false;
 
     public static bool Prefix()
     {
         if (!AmongUsClient.Instance.AmHost) return true;
 
-        //ゲーム終了判定済みなら中断
-        if (predicate == null) return false;
+        if (predicate == null || ShouldNotCheck) return false;
 
-        //ゲーム終了しないモードで廃村以外の場合は中断
         if (Options.NoGameEnd.GetBool() && CustomWinnerHolder.WinnerTeam is not CustomWinner.Draw and not CustomWinner.Error) return false;
 
-        //廃村用に初期値を設定
+        ShowAllRolesWhenGameEnd = false;
         var reason = GameOverReason.ImpostorByKill;
-
-        //ゲーム終了判定
         predicate.CheckForEndGame(out reason);
 
         // FFA
@@ -45,7 +57,7 @@ class GameEndCheckerForNormal
             return false;
         }
 
-        //ゲーム終了時
+        // Start end game
         if (CustomWinnerHolder.WinnerTeam != CustomWinner.Default)
         {
             // Clear all Notice players 
@@ -59,6 +71,8 @@ class GameEndCheckerForNormal
 
             // Update all Notify Roles
             Utils.DoNotifyRoles(ForceLoop: true, NoCache: true);
+
+            Logger.Info("Start end", "CheckEndCriteria.Prefix");
 
             if (reason == GameOverReason.ImpostorBySabotage && (CustomRoles.Jackal.RoleExist() || CustomRoles.Sidekick.RoleExist()) && Jackal.CanWinBySabotageWhenNoImpAlive.GetBool() && !Main.AllAlivePlayerControls.Any(x => x.GetCustomRole().IsImpostorTeam()))
             {
@@ -88,7 +102,7 @@ class GameEndCheckerForNormal
                         }
                         break;
                     case CustomWinner.Cultist:
-                        if (pc.Is(CustomRoles.Charmed) && !CustomWinnerHolder.WinnerIds.Contains(pc.PlayerId))
+                        if ((pc.Is(CustomRoles.Charmed) || pc.Is(CustomRoles.Cultist)) && !CustomWinnerHolder.WinnerIds.Contains(pc.PlayerId))
                         {
                             CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
                         }
@@ -154,13 +168,13 @@ class GameEndCheckerForNormal
                 }
                 foreach (var pc in Main.AllPlayerControls)
                 {
-                    if (pc.Is(CustomRoles.Phantom) && pc.GetPlayerTaskState().IsTaskFinished && pc.Data.IsDead
-                        && (((CustomWinnerHolder.WinnerTeam == CustomWinner.Impostor || CustomWinnerHolder.WinnerTeam == CustomWinner.Crewmate || CustomWinnerHolder.WinnerTeam == CustomWinner.Jackal || CustomWinnerHolder.WinnerTeam == CustomWinner.BloodKnight || CustomWinnerHolder.WinnerTeam == CustomWinner.SerialKiller || CustomWinnerHolder.WinnerTeam == CustomWinner.Juggernaut || CustomWinnerHolder.WinnerTeam == CustomWinner.Bandit || CustomWinnerHolder.WinnerTeam == CustomWinner.Doppelganger || CustomWinnerHolder.WinnerTeam == CustomWinner.PotionMaster || CustomWinnerHolder.WinnerTeam == CustomWinner.Poisoner || CustomWinnerHolder.WinnerTeam == CustomWinner.Cultist || CustomWinnerHolder.WinnerTeam == CustomWinner.Infectious || CustomWinnerHolder.WinnerTeam == CustomWinner.Jinx || CustomWinnerHolder.WinnerTeam == CustomWinner.Virus || CustomWinnerHolder.WinnerTeam == CustomWinner.Arsonist || CustomWinnerHolder.WinnerTeam == CustomWinner.Pelican || CustomWinnerHolder.WinnerTeam == CustomWinner.Wraith || CustomWinnerHolder.WinnerTeam == CustomWinner.Agitater || CustomWinnerHolder.WinnerTeam == CustomWinner.Pestilence || CustomWinnerHolder.WinnerTeam == CustomWinner.Bandit || CustomWinnerHolder.WinnerTeam == CustomWinner.Spiritcaller || CustomWinnerHolder.WinnerTeam == CustomWinner.Quizmaster ) && (Phantom.PhantomSnatchesWin.GetBool() || CustomWinnerHolder.WinnerTeam == CustomWinner.PlagueDoctor))))  //|| CustomWinnerHolder.WinnerTeam == CustomWinner.Occultist
+                    if (pc.Is(CustomRoles.Specter) && pc.GetPlayerTaskState().IsTaskFinished && pc.Data.IsDead
+                        && (((CustomWinnerHolder.WinnerTeam == CustomWinner.Impostor || CustomWinnerHolder.WinnerTeam == CustomWinner.Crewmate || CustomWinnerHolder.WinnerTeam == CustomWinner.Jackal || CustomWinnerHolder.WinnerTeam == CustomWinner.BloodKnight || CustomWinnerHolder.WinnerTeam == CustomWinner.SerialKiller || CustomWinnerHolder.WinnerTeam == CustomWinner.Juggernaut || CustomWinnerHolder.WinnerTeam == CustomWinner.Bandit || CustomWinnerHolder.WinnerTeam == CustomWinner.Doppelganger || CustomWinnerHolder.WinnerTeam == CustomWinner.PotionMaster || CustomWinnerHolder.WinnerTeam == CustomWinner.Poisoner || CustomWinnerHolder.WinnerTeam == CustomWinner.Cultist || CustomWinnerHolder.WinnerTeam == CustomWinner.Infectious || CustomWinnerHolder.WinnerTeam == CustomWinner.Jinx || CustomWinnerHolder.WinnerTeam == CustomWinner.Virus || CustomWinnerHolder.WinnerTeam == CustomWinner.Arsonist || CustomWinnerHolder.WinnerTeam == CustomWinner.Pelican || CustomWinnerHolder.WinnerTeam == CustomWinner.Wraith || CustomWinnerHolder.WinnerTeam == CustomWinner.Agitater || CustomWinnerHolder.WinnerTeam == CustomWinner.Pestilence || CustomWinnerHolder.WinnerTeam == CustomWinner.Bandit || CustomWinnerHolder.WinnerTeam == CustomWinner.Spiritcaller || CustomWinnerHolder.WinnerTeam == CustomWinner.Quizmaster ) && (Specter.SnatchesWin.GetBool() || CustomWinnerHolder.WinnerTeam == CustomWinner.PlagueDoctor))))  //|| CustomWinnerHolder.WinnerTeam == CustomWinner.Occultist
                     {
                         reason = GameOverReason.ImpostorByKill;
                         if (!CustomWinnerHolder.CheckForConvertedWinner(pc.PlayerId))
                         {
-                            CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Phantom);
+                            CustomWinnerHolder.ResetAndSetWinner(CustomWinner.Specter);
                             CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
                         }
                     }
@@ -290,13 +304,13 @@ class GameEndCheckerForNormal
                         CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
                         CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.Maverick);
                     }
-                    if (!Phantom.PhantomSnatchesWin.GetBool())
+                    if (!Specter.SnatchesWin.GetBool())
                     {
                         //Phantom
-                        if (pc.Is(CustomRoles.Phantom) && !pc.IsAlive() && pc.GetPlayerTaskState().IsTaskFinished)
+                        if (pc.Is(CustomRoles.Specter) && !pc.IsAlive() && pc.GetPlayerTaskState().IsTaskFinished)
                         {
                             CustomWinnerHolder.WinnerIds.Add(pc.PlayerId);
-                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.Phantom);
+                            CustomWinnerHolder.AdditionalWinnerTeams.Add(AdditionalWinners.Specter);
                         }
                     }
                     //自爆卡车来咯
@@ -515,7 +529,7 @@ class GameEndCheckerForNormal
                 // resuscitation
                 playerInfo.IsDead = false;
                 // transmission
-                GameData.Instance.SetDirtyBit(0b_1u << playerId);
+                playerInfo.SetDirtyBit(0b_1u << playerId);
                 AmongUsClient.Instance.SendAllStreamedObjects();
             }
             // Delay to ensure that the end of the game is delivered at the end of the game

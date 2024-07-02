@@ -187,7 +187,7 @@ internal class ChatCommands
                         Utils.SendMessage(GetString("Message.AllowNameLength"), PlayerControl.LocalPlayer.PlayerId);
                         break;
                     }
-                    else Main.nickName = args.Skip(1).Join(delimiter: " ");
+                    else Main.HostRealName = args.Skip(1).Join(delimiter: " ");
                     Utils.SendMessage(string.Format(GetString("Message.SetName"), args.Skip(1).Join(delimiter: " ")), PlayerControl.LocalPlayer.PlayerId);
                     break;
 
@@ -277,10 +277,8 @@ internal class ChatCommands
                 case "/р":
                 case "/роль":
                     canceled = true;
-                    byte sendTo = args.Length >= 3 && args[2] == "all" ? (byte)255 : PlayerControl.LocalPlayer.PlayerId;
-                    if (args.Length >= 2)
-                        subArgs = args[1];
-                    SendRolesInfo(subArgs, sendTo);
+                    subArgs = text.Remove(0, 2);
+                    SendRolesInfo(subArgs, PlayerControl.LocalPlayer.PlayerId);
                     break;
 
                 case "/up":
@@ -886,7 +884,7 @@ internal class ChatCommands
                         //Logger.Info(roleName, "2");
                         if (setRole == roleName)
                         {
-                            PlayerControl.LocalPlayer.GetRoleClass()?.Remove(PlayerControl.LocalPlayer.PlayerId);
+                            PlayerControl.LocalPlayer.GetRoleClass()?.OnRemove(PlayerControl.LocalPlayer.PlayerId);
                             PlayerControl.LocalPlayer.RpcSetRole(rl.GetRoleTypes());
                             PlayerControl.LocalPlayer.RpcSetCustomRole(rl);
                             PlayerControl.LocalPlayer.GetRoleClass().OnAdd(PlayerControl.LocalPlayer.PlayerId);
@@ -2758,7 +2756,7 @@ class ChatUpdatePatch
                      ?? Main.AllPlayerControls.ToArray().OrderBy(x => x.PlayerId).FirstOrDefault()
                      ?? player;
         }
-        Logger.Info($"player is null? {player == null}", "ChatUpdatePatch");
+        //Logger.Info($"player is null? {player == null}", "ChatUpdatePatch");
         if (player == null) return;
 
         (string msg, byte sendTo, string title) = Main.MessagesToSend[0];
@@ -2799,12 +2797,14 @@ class ChatUpdatePatch
         var writer = CustomRpcSender.Create("MessagesToSend", SendOption.None);
         writer.StartMessage(clientId);
         writer.StartRpc(player.NetId, (byte)RpcCalls.SetName)
+            .Write(player.Data.NetId)
             .Write(title)
             .EndRpc();
         writer.StartRpc(player.NetId, (byte)RpcCalls.SendChat)
             .Write(msg)
             .EndRpc();
         writer.StartRpc(player.NetId, (byte)RpcCalls.SetName)
+            .Write(player.Data.NetId)
             .Write(player.Data.PlayerName)
             .EndRpc();
         writer.EndMessage();

@@ -8,7 +8,6 @@ using TOHE.Roles.AddOns.Crewmate;
 using TOHE.Roles.AddOns.Impostor;
 using TOHE.Roles.Core;
 using TOHE.Roles.Core.AssignManager;
-using static TOHE.SelectRolesPatch;
 using static TOHE.Translator;
 
 namespace TOHE;
@@ -18,7 +17,8 @@ internal class ChangeRoleSettings
 {
     public static void Postfix(AmongUsClient __instance)
     {
-        SetUpRoleTextPatch.IsInIntro = true;
+        if (AmongUsClient.Instance.AmHost)
+            SetUpRoleTextPatch.IsInIntro = true;
 
         Main.OverrideWelcomeMsg = "";
 
@@ -35,6 +35,9 @@ internal class ChangeRoleSettings
                     Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Scientist, 0, 0);
                     Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Engineer, 0, 0);
                     Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Shapeshifter, 0, 0);
+                    Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Noisemaker, 0, 0);
+                    Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Phantom, 0, 0);
+                    Main.NormalOptions.roleOptions.SetRoleRate(RoleTypes.Tracker, 0, 0);
                 }
             }
             else if (GameStates.IsHideNSeek)
@@ -134,7 +137,7 @@ internal class ChangeRoleSettings
                 if (AmongUsClient.Instance.AmHost && Options.FormatNameMode.GetInt() == 1) pc.RpcSetName(Palette.GetColorName(colorId));
                 Main.PlayerStates[pc.PlayerId] = new(pc.PlayerId)
                 {
-                    NormalOutfit = new GameData.PlayerOutfit().Set(pc.GetRealName(clientData: true), pc.CurrentOutfit.ColorId, pc.CurrentOutfit.HatId, pc.CurrentOutfit.SkinId, pc.CurrentOutfit.VisorId, pc.CurrentOutfit.PetId, pc.CurrentOutfit.NamePlateId),
+                    NormalOutfit = new NetworkedPlayerInfo.PlayerOutfit().Set(pc.GetRealName(clientData: true), pc.CurrentOutfit.ColorId, pc.CurrentOutfit.HatId, pc.CurrentOutfit.SkinId, pc.CurrentOutfit.VisorId, pc.CurrentOutfit.PetId, pc.CurrentOutfit.NamePlateId),
                 };
                 //Main.AllPlayerNames[pc.PlayerId] = pc?.Data?.PlayerName;
 
@@ -148,7 +151,7 @@ internal class ChangeRoleSettings
                 pc.cosmetics.nameText.text = pc.name;
 
                 var outfit = pc.Data.DefaultOutfit;
-                Camouflage.PlayerSkins[pc.PlayerId] = new GameData.PlayerOutfit().Set(outfit.PlayerName, outfit.ColorId, outfit.HatId, outfit.SkinId, outfit.VisorId, outfit.PetId, outfit.NamePlateId);
+                Camouflage.PlayerSkins[pc.PlayerId] = new NetworkedPlayerInfo.PlayerOutfit().Set(outfit.PlayerName, outfit.ColorId, outfit.HatId, outfit.SkinId, outfit.VisorId, outfit.PetId, outfit.NamePlateId);
                 Main.clientIdList.Add(pc.GetClientId());
             }
 
@@ -226,6 +229,16 @@ internal class ChangeRoleSettings
 [HarmonyPatch(typeof(RoleManager), nameof(RoleManager.SelectRoles))]
 internal class SelectRolesPatch
 {
+    private static RoleOptionsCollectionV08 RoleOpt => Main.NormalOptions.roleOptions;
+    private static readonly Dictionary<RoleTypes, int> RoleTypeNums = new() // From EHR
+    {
+        { RoleTypes.Scientist, RoleAssign.AddScientistNum },
+        { RoleTypes.Engineer, RoleAssign.AddEngineerNum },
+        { RoleTypes.Shapeshifter, RoleAssign.AddShapeshifterNum },
+        { RoleTypes.Noisemaker, RoleAssign.AddNoisemakerNum },
+        { RoleTypes.Phantom, RoleAssign.AddPhantomNum },
+        { RoleTypes.Tracker, RoleAssign.AddTrackerNum }
+    };
     public static void Prefix()
     {
         if (!AmongUsClient.Instance.AmHost) return;
@@ -267,13 +280,12 @@ internal class SelectRolesPatch
             RoleAssign.CalculateVanillaRoleCount();
 
             // Set Rate For Vanilla Roles
-            var roleOpt = Main.NormalOptions.roleOptions;
-            int ScientistNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Scientist);
-            roleOpt.SetRoleRate(RoleTypes.Scientist, ScientistNum + RoleAssign.addScientistNum, RoleAssign.addScientistNum > 0 ? 100 : roleOpt.GetChancePerGame(RoleTypes.Scientist));
-            int EngineerNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Engineer);
-            roleOpt.SetRoleRate(RoleTypes.Engineer, EngineerNum + RoleAssign.addEngineerNum, RoleAssign.addEngineerNum > 0 ? 100 : roleOpt.GetChancePerGame(RoleTypes.Engineer));
-            int ShapeshifterNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Shapeshifter);
-            roleOpt.SetRoleRate(RoleTypes.Shapeshifter, ShapeshifterNum + RoleAssign.addShapeshifterNum, RoleAssign.addShapeshifterNum > 0 ? 100 : roleOpt.GetChancePerGame(RoleTypes.Shapeshifter));
+            foreach (var roleType in RoleTypeNums)
+            {
+                int roleNum = Options.DisableVanillaRoles.GetBool() ? 0 : RoleOpt.GetNumPerGame(roleType.Key);
+                roleNum += roleType.Value;
+                RoleOpt.SetRoleRate(roleType.Key, roleNum, roleType.Value > 0 ? 100 : RoleOpt.GetChancePerGame(roleType.Key));
+            }
         }
         catch (Exception e)
         {
@@ -388,6 +400,15 @@ internal class SelectRolesPatch
                         break;
                     case RoleTypes.Shapeshifter:
                         role = CustomRoles.Shapeshifter;
+                        break;
+                    case RoleTypes.Noisemaker:
+                        role = CustomRoles.Noisemaker;
+                        break;
+                    case RoleTypes.Phantom:
+                        role = CustomRoles.Phantom;
+                        break;
+                    case RoleTypes.Tracker:
+                        role = CustomRoles.Tracker;
                         break;
                     default:
                         Logger.SendInGame(string.Format(GetString("Error.InvalidRoleAssignment"), pc?.Data?.PlayerName));
@@ -511,23 +532,13 @@ internal class SelectRolesPatch
             foreach (var pc in Main.AllPlayerControls)
                 pc.ResetKillCooldown();
 
-            //Return the number of role type
-            var roleOpt = Main.NormalOptions.roleOptions;
-
-            // Role type: Scientist
-            int ScientistNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Scientist);
-            ScientistNum -= RoleAssign.addScientistNum;
-            roleOpt.SetRoleRate(RoleTypes.Scientist, ScientistNum, roleOpt.GetChancePerGame(RoleTypes.Scientist));
-
-            // Role type: Engineer
-            int EngineerNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Engineer);
-            EngineerNum -= RoleAssign.addEngineerNum;
-            roleOpt.SetRoleRate(RoleTypes.Engineer, EngineerNum, roleOpt.GetChancePerGame(RoleTypes.Engineer));
-
-            // Role type: Shapeshifter
-            int ShapeshifterNum = Options.DisableVanillaRoles.GetBool() ? 0 : roleOpt.GetNumPerGame(RoleTypes.Shapeshifter);
-            ShapeshifterNum -= RoleAssign.addShapeshifterNum;
-            roleOpt.SetRoleRate(RoleTypes.Shapeshifter, ShapeshifterNum, roleOpt.GetChancePerGame(RoleTypes.Shapeshifter));
+            // Role types
+            foreach (var roleType in RoleTypeNums)
+            {
+                int roleNum = Options.DisableVanillaRoles.GetBool() ? 0 : RoleOpt.GetNumPerGame(roleType.Key);
+                roleNum -= roleType.Value;
+                RoleOpt.SetRoleRate(roleType.Key, roleNum, RoleOpt.GetChancePerGame(roleType.Key));
+            }
 
             switch (Options.CurrentGameMode)
             {
@@ -587,7 +598,7 @@ internal class SelectRolesPatch
 
         RpcSetRoleReplacer.OverriddenSenderList.Add(senders[player.PlayerId]);
         //Set role for host
-        player.SetRole(othersRole);
+        player.SetRole(othersRole, false);
         player.Data.IsDead = true;
 
         Logger.Info($"Registered Role: {player?.Data?.PlayerName} => {role} : RoleType for self => {selfRole}, for others => {othersRole}", "AssignDesyncRoles");
@@ -596,13 +607,20 @@ internal class SelectRolesPatch
     {
         foreach (var seer in Main.AllPlayerControls)
         {
-            var sender = senders[seer.PlayerId];
             foreach (var target in Main.AllPlayerControls)
             {
                 if (rolesMap.TryGetValue((seer.PlayerId, target.PlayerId), out var roleType))
                 {
                     try
                     {
+                        // Change Scientist to Noisemaker when role is desync and target have Noisemaker role
+                        if (roleType is RoleTypes.Scientist && RoleAssign.RoleResult.Any(x => x.Key.PlayerId == seer.PlayerId && x.Value is CustomRoles.NoisemakerTOHE or CustomRoles.Noisemaker))
+                        {
+                            Logger.Info($"seer: {seer.PlayerId}, target: {target.PlayerId}, {roleType} => {RoleTypes.Noisemaker}", "OverrideRoleForDesync");
+                            roleType = RoleTypes.Noisemaker;
+                        }
+
+                        var sender = senders[seer.PlayerId];
                         sender.RpcSetRole(seer, roleType, target.GetClientId());
                     }
                     catch
@@ -644,9 +662,10 @@ internal class SelectRolesPatch
                 {
                     try
                     {
-                        seer.SetRole(roleType);
+                        seer.SetRole(roleType, false);
                         sender.Value.AutoStartRpc(seer.NetId, (byte)RpcCalls.SetRole, Utils.GetPlayerById(sender.Key).GetClientId())
                             .Write((ushort)roleType)
+                            .Write(false)
                             .EndRpc();
                     }
                     catch

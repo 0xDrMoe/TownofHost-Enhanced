@@ -8,6 +8,7 @@ class ChanceChangePatch
 {
     public static void Postfix(RoleOptionSetting __instance)
     {
+        /*
         bool forced = true;
         string DisableText = $" ({GetString("Disabled")})";
         if (__instance.Role.Role == RoleTypes.Scientist)
@@ -42,6 +43,21 @@ class ChanceChangePatch
         if (forced)
         {
             __instance.ChanceText.text = DisableText;
+        }
+        */
+    }
+    [HarmonyPatch(typeof(GameOptionsManager), nameof(GameOptionsManager.SwitchGameMode))]
+    class SwitchGameModePatch
+    {
+        public static void Postfix(GameModes gameMode)
+        {
+            if (gameMode == GameModes.HideNSeek)
+            {
+                ErrorText.Instance.HnSFlag = true;
+                ErrorText.Instance.AddError(ErrorCode.HnsUnload);
+                Harmony.UnpatchAll();
+                Main.Instance.Unload();
+            }
         }
     }
 }

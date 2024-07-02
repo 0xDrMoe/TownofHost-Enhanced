@@ -18,7 +18,7 @@ namespace TOHE;
 enum CustomRPC : byte // 194/255 USED
 {
     // RpcCalls can increase with each AU version
-    // On version 2023.11.28 the last id in RpcCalls: 61
+    // On version 2024.6.18 the last id in RpcCalls: 65
     VersionCheck = 80,
     RequestRetryVersionCheck = 81,
     SyncCustomSettings = 100,
@@ -112,7 +112,7 @@ enum CustomRPC : byte // 194/255 USED
     SetVultureArrow,
     SetRadarArrow,
     SyncVultureBodyAmount,
-    SetTrackerTarget,
+    //SetTrackerTarget,
     SpyRedNameSync,
     SpyRedNameRemove,
     SetChameleonTimer,
@@ -153,18 +153,20 @@ internal class RPCHandlerPatch
     {
         var rpcType = (RpcCalls)callId;
         MessageReader subReader = MessageReader.Get(reader);
-        if (EAC.ReceiveRpc(__instance, callId, reader)) return false;
+        //if (EAC.ReceiveRpc(__instance, callId, reader)) return false;
         Logger.Info($"{__instance?.Data?.PlayerId}({(__instance.OwnedByHost() ? "Host" : __instance?.Data?.PlayerName)}):{callId}({RPC.GetRpcName(callId)})", "ReceiveRPC");
         switch (rpcType)
         {
             case RpcCalls.SetName: //SetNameRPC
+                subReader.ReadUInt32();
                 string name = subReader.ReadString();
                 if (subReader.BytesRemaining > 0 && subReader.ReadBoolean()) return false;
                 Logger.Info("RPC Set Name For Player: " + __instance.GetNameWithRole() + " => " + name, "SetName");
                 break;
-            case RpcCalls.SetRole: //SetNameRPC
+            case RpcCalls.SetRole: //SetRoleRPC
                 var role = (RoleTypes)subReader.ReadUInt16();
-                Logger.Info("RPC Set Role For Player: " + __instance.GetRealName() + " => " + role, "SetRole");
+                var canOverriddenRole = subReader.ReadBoolean();
+                Logger.Info("RPC Set Role For Player: " + __instance.GetRealName() + " => " + role + " CanOverrideRole: " + canOverriddenRole, "SetRole");
                 break;
             case RpcCalls.SendChat: // Free chat
                 var text = subReader.ReadString();
@@ -242,6 +244,12 @@ internal class RPCHandlerPatch
                     bool cheating = reader.ReadBoolean();
                     if (__instance.GetClientId() < 0)
                         break;
+
+                    if (!Main.playerVersion.TryGetValue(__instance.GetClientId(), out _))
+                    {
+                        RPC.RpcVersionCheck();
+                    }
+
                     Main.playerVersion[__instance.GetClientId()] = new PlayerVersion(version, tag, forkId);
 
                     if (Main.VersionCheat.Value && __instance.GetClientId() == AmongUsClient.Instance.HostId) RPC.RpcVersionCheck();
@@ -255,7 +263,7 @@ internal class RPCHandlerPatch
                     // Kick Unmached Player Start
                     if (AmongUsClient.Instance.AmHost)
                     {
-                        if (!IsVersionMatch(__instance.GetClientId()))
+                        if (!IsVersionMatch(__instance.GetClientId()) && !Main.VersionCheat.Value)
                         {
                             _ = new LateTask(() =>
                             {
@@ -323,8 +331,6 @@ internal class RPCHandlerPatch
                         option.SetValue(4); // 4 => Preset 5
                     }
                 }
-                if (GameStates.IsLobby)
-                    OptionShower.GetText();
                 break;
 
             case CustomRPC.SetDeathReason:
@@ -443,9 +449,9 @@ internal class RPCHandlerPatch
                 byte killerId = reader.ReadByte();
                 RPC.SetRealKiller(targetId, killerId);
                 break;
-            case CustomRPC.SetTrackerTarget:
-                Tracker.ReceiveRPC(reader);
-                break;
+            //case CustomRPC.SetTrackerTarget:
+            //    Tracker.ReceiveRPC(reader);
+            //    break;
             case CustomRPC.SetJailerExeLimit:
                 Jailer.ReceiveRPC(reader, setTarget: false);
                 break;
@@ -478,7 +484,6 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.RestTOHESetting:
                 OptionItem.AllOptions.ToArray().Where(x => x.Id > 0).Do(x => x.SetValueNoRpc(x.DefaultValue));
-                OptionShower.GetText();
                 break;
             case CustomRPC.GuessKill:
                 GuessManager.RpcClientGuess(Utils.GetPlayerById(reader.ReadByte()));
@@ -510,9 +515,13 @@ internal class RPCHandlerPatch
                 break;
             case CustomRPC.SyncAllPlayerNames:
                 Main.AllPlayerNames.Clear();
+                Main.AllClientRealNames.Clear();
                 int num = reader.ReadPackedInt32();
                 for (int i = 0; i < num; i++)
                     Main.AllPlayerNames.TryAdd(reader.ReadByte(), reader.ReadString());
+                int num2 = reader.ReadPackedInt32();
+                for (int i = 0; i < num2; i++)
+                    Main.AllClientRealNames.TryAdd(reader.ReadInt32(), reader.ReadString());
                 break;
             case CustomRPC.SyncFFANameNotify:
                 FFAManager.ReceiveRPCSyncNameNotify(reader);
@@ -719,6 +728,12 @@ internal static class RPC
             writer.Write(name.Key);
             writer.Write(name.Value);
         }
+        writer.WritePacked(Main.AllClientRealNames.Count);
+        foreach (var name in Main.AllClientRealNames)
+        {
+            writer.Write(name.Key);
+            writer.Write(name.Value);
+        }
         AmongUsClient.Instance.FinishRpcImmediately(writer);
     }
     public static void ShowPopUp(this PlayerControl pc, string msg)
@@ -791,7 +806,7 @@ internal static class RPC
     public static void GetDeathReason(MessageReader reader)
     {
         var playerId = reader.ReadByte();
-        var deathReason = (PlayerState.DeathReason)reader.ReadInt32();
+        var deathReason = (PlayerState.DeathReason)reader.ReadPackedInt32();
         Main.PlayerStates[playerId].deathReason = deathReason;
         Main.PlayerStates[playerId].IsDead = true;
     }

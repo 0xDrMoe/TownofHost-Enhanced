@@ -1,4 +1,5 @@
 using AmongUs.GameOptions;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Hazel;
 using InnerNet;
 using System;
@@ -17,6 +18,11 @@ namespace TOHE;
 
 static class ExtendedPlayerControl
 {
+    public static void SetRole(this PlayerControl player, RoleTypes role, bool canOverride = false)
+    {
+        AmongUsClient.Instance.StartCoroutine(player.CoSetRole(role, canOverride));
+    }
+
     public static void RpcSetCustomRole(this PlayerControl player, CustomRoles role)
     {
         if (role < CustomRoles.NotAssigned)
@@ -70,7 +76,7 @@ static class ExtendedPlayerControl
         var client = player.GetClient();
         return client == null ? -1 : client.Id;
     }
-    public static CustomRoles GetCustomRole(this GameData.PlayerInfo player)
+    public static CustomRoles GetCustomRole(this NetworkedPlayerInfo player)
     {
         return player == null || player.Object == null ? CustomRoles.Crewmate : player.Object.GetCustomRole();
     }
@@ -132,7 +138,7 @@ static class ExtendedPlayerControl
         player.RpcSetName(name);
     }
 
-    public static void RpcSetNamePrivate(this PlayerControl player, string name, bool DontShowOnModdedClient = false, PlayerControl seer = null, bool force = false)
+    public static void RpcSetNamePrivate(this PlayerControl player, string name, PlayerControl seer = null, bool force = false)
     {
         //player: player whose name needs to be changed
         //seer: player who can see name changes
@@ -148,27 +154,30 @@ static class ExtendedPlayerControl
         HudManagerPatch.LastSetNameDesyncCount++;
         Logger.Info($"Set:{player?.Data?.PlayerName}:{name} for {seer.GetNameWithRole().RemoveHtmlTags()}", "RpcSetNamePrivate");
 
+        if (seer == null || player == null) return;
+
         var clientId = seer.GetClientId();
 
         var sender = CustomRpcSender.Create(name: $"SetNamePrivate");
         sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetName, clientId)
+            .Write(seer.Data.NetId)
             .Write(name)
-            .Write(DontShowOnModdedClient)
         .EndRpc();
         sender.SendMessage();
     }
-    public static void RpcSetRoleDesync(this PlayerControl player, RoleTypes role, int clientId)
+    public static void RpcSetRoleDesync(this PlayerControl player, RoleTypes role, bool canOverride, int clientId)
     {
         //player: 名前の変更対象
 
         if (player == null) return;
         if (AmongUsClient.Instance.ClientId == clientId)
         {
-            player.SetRole(role);
+            player.SetRole(role, canOverride);
             return;
         }
         MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(player.NetId, (byte)RpcCalls.SetRole, SendOption.Reliable, clientId);
         writer.Write((ushort)role);
+        writer.Write(canOverride);
         AmongUsClient.Instance.FinishRpcImmediately(writer);
     }
 
@@ -254,7 +263,7 @@ static class ExtendedPlayerControl
         }
         player.ResetKillCooldown();
     }
-    public static void ResetPlayerOutfit(this PlayerControl player, GameData.PlayerOutfit Outfit = null, bool force = false)
+    public static void ResetPlayerOutfit(this PlayerControl player, NetworkedPlayerInfo.PlayerOutfit Outfit = null, bool force = false)
     {
         Outfit ??= Main.PlayerStates[player.PlayerId].NormalOutfit;
 
@@ -264,6 +273,7 @@ static class ExtendedPlayerControl
 
             player.SetName(Outfit.PlayerName);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetName)
+                .Write(player.Data.NetId)
                 .Write(Outfit.PlayerName)
             .EndRpc();
 
@@ -271,32 +281,38 @@ static class ExtendedPlayerControl
 
             player.SetColor(Outfit.ColorId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetColor)
-                .Write(Outfit.ColorId)
+                .Write(player.Data.NetId)
+                .Write((byte)Outfit.ColorId)
             .EndRpc();
 
             player.SetHat(Outfit.HatId, Outfit.ColorId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetHatStr)
                 .Write(Outfit.HatId)
+                .Write(player.GetNextRpcSequenceId(RpcCalls.SetHatStr))
             .EndRpc();
 
             player.SetSkin(Outfit.SkinId, Outfit.ColorId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetSkinStr)
                 .Write(Outfit.SkinId)
+                .Write(player.GetNextRpcSequenceId(RpcCalls.SetSkinStr))
             .EndRpc();
 
             player.SetVisor(Outfit.VisorId, Outfit.ColorId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetVisorStr)
                 .Write(Outfit.VisorId)
+                .Write(player.GetNextRpcSequenceId(RpcCalls.SetVisorStr))
             .EndRpc();
 
             player.SetPet(Outfit.PetId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetPetStr)
                 .Write(Outfit.PetId)
+                .Write(player.GetNextRpcSequenceId(RpcCalls.SetPetStr))
                 .EndRpc();
 
             player.SetNamePlate(Outfit.NamePlateId);
             sender.AutoStartRpc(player.NetId, (byte)RpcCalls.SetNamePlateStr)
                 .Write(Outfit.NamePlateId)
+                .Write(player.GetNextRpcSequenceId(RpcCalls.SetNamePlateStr))
                 .EndRpc();
 
             sender.SendMessage();
@@ -305,7 +321,7 @@ static class ExtendedPlayerControl
             var OutfitTypeSet = player.CurrentOutfitType != PlayerOutfitType.Shapeshifted ? PlayerOutfitType.Default : PlayerOutfitType.Shapeshifted;
 
             player.Data.SetOutfit(OutfitTypeSet, Outfit);
-            GameData.Instance.SetDirty();
+            GameData.Instance.DirtyAllData();
         }
         if (player.CheckCamoflague() && !force)
         {
@@ -376,6 +392,31 @@ static class ExtendedPlayerControl
             }
         }
     }
+
+    public static void RpcSpecificVanish(this PlayerControl player, PlayerControl seer)
+    {
+        /*
+         *  Unluckily the vanish animation cannot be disabled
+         *  For vanila client seer side, the player must be with Phantom Role behavior, or the rpc will do nothing
+         */
+        if (!AmongUsClient.Instance.AmHost) return;
+
+        MessageWriter msg = AmongUsClient.Instance.StartRpcImmediately(player.NetId, (byte)RpcCalls.StartVanish, SendOption.None, seer.GetClientId());
+        AmongUsClient.Instance.FinishRpcImmediately(msg);
+    }
+
+    public static void RpcSpecificAppear(this PlayerControl player, PlayerControl seer, bool shouldAnimate)
+    {
+        /*
+         *  For vanila client seer side, the player must be with Phantom Role behavior, or the rpc will do nothing
+         */
+        if (!AmongUsClient.Instance.AmHost) return;
+
+        MessageWriter msg = AmongUsClient.Instance.StartRpcImmediately(player.NetId, (byte)RpcCalls.StartAppear, SendOption.None, seer.GetClientId());
+        msg.Write(shouldAnimate);
+        AmongUsClient.Instance.FinishRpcImmediately(msg);
+    }
+
     public static void RpcSpecificMurderPlayer(this PlayerControl killer, PlayerControl target, PlayerControl seer)
     {
         if (seer.AmOwner)
@@ -390,6 +431,7 @@ static class ExtendedPlayerControl
             AmongUsClient.Instance.FinishRpcImmediately(messageWriter);
         }
     } //Must provide seer, target
+
     [Obsolete]
     public static void RpcSpecificProtectPlayer(this PlayerControl killer, PlayerControl target = null, int colorId = 0)
     {
@@ -554,7 +596,7 @@ static class ExtendedPlayerControl
 
             if (client != null)
             {
-                if (OnPlayerJoinedPatch.realClientName.TryGetValue(client.Id, out var realname))
+                if (Main.AllClientRealNames.TryGetValue(client.Id, out var realname))
                 {
                     return realname;
                 }
@@ -768,7 +810,7 @@ static class ExtendedPlayerControl
         return CheckMurderPatch.RpcCheckAndMurder(killer, target, check);
     }
     public static bool CheckForInvalidMurdering(this PlayerControl killer, PlayerControl target) => CheckMurderPatch.CheckForInvalidMurdering(killer, target);
-    public static void NoCheckStartMeeting(this PlayerControl reporter, GameData.PlayerInfo target, bool force = false)
+    public static void NoCheckStartMeeting(this PlayerControl reporter, NetworkedPlayerInfo target, bool force = false)
     { 
         //Method that can cause a meeting to occur regardless of whether it is in sabotage.
         //If target is null, it becomes a button.
@@ -823,29 +865,135 @@ static class ExtendedPlayerControl
         => (seer.Is(CustomRoles.Visionary))
         && !target.Data.IsDead;
 
-    public static bool KnowRoleTarget(PlayerControl seer, PlayerControl target)
+    private readonly static LogHandler logger = Logger.Handler("KnowRoleTarget");
+    public static bool KnowRoleTarget(PlayerControl seer, PlayerControl target, bool isVanilla = false)
     {
-        if (Options.CurrentGameMode == CustomGameMode.FFA || GameEndCheckerForNormal.ShowAllRolesWhenGameEnd) return true;
-        else if (seer.Is(CustomRoles.GM) || target.Is(CustomRoles.GM) || (PlayerControl.LocalPlayer.PlayerId == seer.PlayerId && Main.GodMode.Value)) return true;
-        else if (Main.VisibleTasksCount && !seer.IsAlive() && Options.GhostCanSeeOtherRoles.GetBool()) return true;
-        else if (Options.SeeEjectedRolesInMeeting.GetBool() && Main.PlayerStates[target.PlayerId].deathReason == PlayerState.DeathReason.Vote) return true;
-        else if (seer.GetCustomRole() == target.GetCustomRole() && seer.GetCustomRole().IsNK()) return true;
-        else if (Options.LoverKnowRoles.GetBool() && (seer.Is(CustomRoles.Lovers) && target.Is(CustomRoles.Lovers))) return true;
-        else if (Options.ImpsCanSeeEachOthersRoles.GetBool() && seer.Is(Custom_Team.Impostor) && target.Is(Custom_Team.Impostor)) return true;
-        else if (Madmate.MadmateKnowWhosImp.GetBool() && seer.Is(CustomRoles.Madmate) && target.Is(Custom_Team.Impostor)) return true;
-        else if (Madmate.ImpKnowWhosMadmate.GetBool() && target.Is(CustomRoles.Madmate) && seer.Is(Custom_Team.Impostor)) return true;
-        else if (seer.Is(Custom_Team.Impostor) && target.GetCustomRole().IsGhostRole() && target.GetCustomRole().IsImpostor()) return true;
-        else if (target.GetRoleClass().KnowRoleTarget(seer, target)) return true;
-        else if (seer.GetRoleClass().KnowRoleTarget(seer, target)) return true;
-        else if (Solsticer.OtherKnowSolsticer(target)) return true;
-        else if (Overseer.IsRevealedPlayer(seer, target) && !target.Is(CustomRoles.Trickster)) return true;
-        else if (Gravestone.EveryoneKnowRole(target)) return true;
-        else if (Mimic.CanSeeDeadRoles(seer, target)) return true;
-        else if (Workaholic.OthersKnowWorka(target)) return true;
-        else if (Jackal.JackalKnowRole(seer, target)) return true;
-        else if (Cultist.KnowRole(seer, target)) return true;
-        else if (Infectious.KnowRole(seer, target)) return true;
-        else if (Virus.KnowRole(seer, target)) return true;
+        if (Options.CurrentGameMode == CustomGameMode.FFA || GameEndCheckerForNormal.ShowAllRolesWhenGameEnd)
+        {
+            if (isVanilla)
+                logger.Info($"IsFFA {Options.CurrentGameMode == CustomGameMode.FFA} or Game End {GameEndCheckerForNormal.ShowAllRolesWhenGameEnd}");
+            return true;
+        }
+        else if (seer.Is(CustomRoles.GM) || target.Is(CustomRoles.GM) || (PlayerControl.LocalPlayer.PlayerId == seer.PlayerId && Main.GodMode.Value))
+        {
+            if (isVanilla)
+                logger.Info($"Is GM {seer.Is(CustomRoles.GM)} or {target.Is(CustomRoles.GM)} or GodMode {(PlayerControl.LocalPlayer.PlayerId == seer.PlayerId && Main.GodMode.Value)}");
+            return true;
+        }
+        else if (Main.VisibleTasksCount && !seer.IsAlive() && Options.GhostCanSeeOtherRoles.GetBool())
+        {
+            if (isVanilla)
+                logger.Info($"Is dead and can see other roles");
+            return true;
+        }
+        else if (Options.SeeEjectedRolesInMeeting.GetBool() && Main.PlayerStates[target.PlayerId].deathReason == PlayerState.DeathReason.Vote)
+        {
+            if (isVanilla)
+                logger.Info($"See Ejected Roles In Meeting");
+            return true;
+        }
+        else if (seer.GetCustomRole() == target.GetCustomRole() && seer.GetCustomRole().IsNK())
+        {
+            if (isVanilla)
+                logger.Info("Roles == and IsNK");
+            return true;
+        }
+        else if (Options.LoverKnowRoles.GetBool() && seer.Is(CustomRoles.Lovers) && target.Is(CustomRoles.Lovers))
+        {
+            if (isVanilla)
+                logger.Info($"Lover Know Roles");
+            return true;
+        }
+        else if (Options.ImpsCanSeeEachOthersRoles.GetBool() && seer.Is(Custom_Team.Impostor) && target.Is(Custom_Team.Impostor))
+        {
+            if (isVanilla)
+                logger.Info($"Imps Can See Each Others Roles");
+            return true;
+        }
+        else if (Madmate.MadmateKnowWhosImp.GetBool() && seer.Is(CustomRoles.Madmate) && target.Is(Custom_Team.Impostor))
+        {
+            if (isVanilla)
+                logger.Info($"Madmate Know Whos Imp");
+            return true;
+        }
+        else if (Madmate.ImpKnowWhosMadmate.GetBool() && target.Is(CustomRoles.Madmate) && seer.Is(Custom_Team.Impostor))
+        {
+            if (isVanilla)
+                logger.Info($"Imp Know Whos Madmate");
+            return true;
+        }
+        else if (seer.Is(Custom_Team.Impostor) && target.GetCustomRole().IsGhostRole() && target.GetCustomRole().IsImpostor())
+        {
+            if (isVanilla)
+                logger.Info("Impostor see Imp Ghost Role");
+            return true;
+        }
+        else if (target.GetRoleClass().KnowRoleTarget(seer, target))
+        {
+            if (isVanilla)
+                logger.Info($"target {target.GetCustomRole()} GetRoleClass().KnowRoleTarget");
+            return true;
+        }
+        else if (seer.GetRoleClass().KnowRoleTarget(seer, target))
+        {
+            if (isVanilla)
+                logger.Info($"seer {seer.GetCustomRole()} GetRoleClass().KnowRoleTarget");
+            return true;
+        }
+        else if (Solsticer.OtherKnowSolsticer(target))
+        {
+            if (isVanilla)
+                logger.Info("Solsticer Other Know Solsticer");
+            return true;
+        }
+        else if (Overseer.IsRevealedPlayer(seer, target) && !target.Is(CustomRoles.Trickster))
+        {
+            if (isVanilla)
+                logger.Info($"Overseer.IsRevealedPlayer");
+            return true;
+        }
+        else if (Gravestone.EveryoneKnowRole(target))
+        {
+            if (isVanilla)
+                logger.Info("Gravestone.EveryoneKnowRole");
+            return true;
+        }
+        else if (Mimic.CanSeeDeadRoles(seer, target))
+        {
+            if (isVanilla)
+                logger.Info("Mimic.CanSeeDeadRoles");
+            return true;
+        }
+        else if (Workaholic.OthersKnowWorka(target))
+        {
+            if (isVanilla)
+                logger.Info("Workaholic Others Know Worka");
+            return true;
+        }
+        else if (Jackal.JackalKnowRole(seer, target))
+        {
+            if (isVanilla)
+                logger.Info("Jackal Know Role");
+            return true;
+        }
+        else if (Cultist.KnowRole(seer, target))
+        {
+            if (isVanilla)
+                logger.Info("Cultist Know Role");
+            return true;
+        }
+        else if (Infectious.KnowRole(seer, target))
+        {
+            if (isVanilla)
+                logger.Info("Infectious Know Role");
+            return true;
+        }
+        else if (Virus.KnowRole(seer, target))
+        {
+            if (isVanilla)
+                logger.Info($"Virus Know Role");
+            return true;
+        }
 
 
         else return false;
