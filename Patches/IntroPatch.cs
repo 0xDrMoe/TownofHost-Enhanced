@@ -537,7 +537,8 @@ class IntroCutsceneDestroyPatch
                     }
                 }
 
-                _ = new LateTask(() => Main.AllPlayerControls.Do(pc => pc.RpcSetRoleDesync(RoleTypes.Shapeshifter, false, -3)), 2f, "Set Impostor For Server");
+                // Not entirely sure if this is really necessary
+                //_ = new LateTask(() => Main.AllPlayerControls.Do(pc => pc.RpcSetRoleDesync(RoleTypes.Shapeshifter, false, -3)), 2f, "Set Impostor For Server");
             }
 
             if (PlayerControl.LocalPlayer.Is(CustomRoles.GM)) // Incase user has /up access
