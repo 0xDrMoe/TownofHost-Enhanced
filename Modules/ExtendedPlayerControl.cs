@@ -477,6 +477,63 @@ static class ExtendedPlayerControl
         AmongUsClient.Instance.FinishRpcImmediately(messageWriter);
     }
 
+    public static void RpcPhantomize(this PlayerControl player, bool isActive, bool shouldAnimate)
+    {
+        if (!AmongUsClient.Instance.AmHost) return;
+
+        if (player.Data.RoleType != RoleTypes.Phantom)
+        {
+            Logger.Info($"{player.Data.PlayerName} is unable to Appear as a none Phantom BaseRole, BaseRole: {Enum.GetName(player.Data.RoleType)}", "RpcPhantomize");
+            return;
+        }
+
+        if (isActive)
+        {
+            if (AmongUsClient.Instance.AmClient)
+            {
+                if (!shouldAnimate && player == PlayerControl.LocalPlayer)
+                {
+                    player.SetRoleInvisibility(false, true, true); // Fix button being unusable due to fading variable in PhantomRole set to true
+                }
+
+                player.SetRoleInvisibility(false, shouldAnimate, true);
+            }
+
+            if (!shouldAnimate)
+            {
+                player.RpcSpecificAppear(player, true); // Fix button being unusable due to fading variable in PhantomRole set to true
+            }
+
+            player.RpcAppear(shouldAnimate);
+        }
+        else
+        {
+            if (!shouldAnimate)
+            {
+                var vent = Utils.GetFurthestVentFromPlayers();
+
+                foreach (var target in Main.AllPlayerControls.Where(pc => pc != player && pc.GetCustomRole().GetCustomRoleTeam() != player.GetCustomRole().GetCustomRoleTeam() && !pc.GetCustomRole().IsDesyncRole()))
+                {
+                    player.RpcDesyncTeleport(vent.transform.position, target);
+                    player.MyPhysics.RpcEnterVentDesync(vent.Id, target);
+
+                    _ = new LateTask(() =>
+                    {
+                        player.MyPhysics.RpcExitVentDesync(vent.Id, target);
+                        player.RpcDesyncTeleport(player.GetCustomPosition(), target);
+                    }, 1.25f, "RpcPhantomize");
+                }
+            }
+
+            if (AmongUsClient.Instance.AmClient)
+            {
+                player.SetRoleInvisibility(true, true, true);
+            }
+
+            player.RpcVanish();
+        }
+    }
+
     public static void RpcSpecificVanish(this PlayerControl player, PlayerControl seer)
     {
         /*
@@ -568,6 +625,18 @@ static class ExtendedPlayerControl
         messageWriter.WriteNetObject(target);
         messageWriter.Write((byte)amount);
         AmongUsClient.Instance.FinishRpcImmediately(messageWriter);
+    }
+
+    // Check if player is Shapeshifting
+    public static bool IsInShapeshift(this PlayerControl player) => player != null && (player.shapeshiftTargetPlayerId > -1 || player.shapeshifting);
+    // Check if player is in vanish as Phantom
+    public static bool IsInVanish(this PlayerControl player)
+    {
+        if (player != null && player.Data.Role is PhantomRole phantomRole)
+        {
+            return phantomRole.fading;
+        }
+        return false;
     }
 
     public static bool OwnedByHost(this InnerNetObject innerObject)

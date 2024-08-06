@@ -263,6 +263,21 @@ public abstract class RoleBase
     public virtual void UnShapeShiftButton(PlayerControl shapeshifter) { }
 
     /// <summary>
+    /// Called when checking for appear/vanish
+    /// Also can be used not activate appear/vanish animate
+    /// Can only be used on Phantom base roles!
+    /// </summary>
+    /// <param name="animate">Whether to play the phantom animation</param>
+    /// <returns>return false for cancel the phantom transformation</returns>
+    public virtual bool OnCheckPhantomize(PlayerControl phantom, ref bool resetCooldown, ref bool shouldAnimate, bool isActive) => true;
+
+    /// <summary>
+    /// Called after check appear/vanish
+    /// </summary>
+    public virtual void OnPhantomize(PlayerControl phantom, bool IsAnimate, bool isActive)
+    { }
+
+    /// <summary>
     /// Check start meeting by press meeting button
     /// </summary>
     public virtual bool OnCheckStartMeeting(PlayerControl reporter) => reporter.IsAlive();
