@@ -105,6 +105,23 @@ internal class RunLoginPatch
         }
     }
 }
+[HarmonyPatch(typeof(AccountManager), nameof(AccountManager.CanPlayOnline))]
+internal class AccountManagerPatch
+{
+    public static void Postfix()
+    {
+        if (!EFC.HasShownPopUp && EFC.CheckIfUnauthorizedFiles())
+        {
+            var lines = "<color=#ebbd34>----------------------------------------------------------------------------------------------</color>";
+            var star = "<color=#660078>★</color>";
+            var warning = "<color=#e60000>⚠</color>";
+            EFC.HasShownPopUp = true;
+            DisconnectPopup.Instance._textArea.enableWordWrapping = false;
+            DisconnectPopup.Instance.ShowCustom($"{lines}\n<b><size=200%>{star}<color=#d900ff>TOHE</color>{star}</size></b>\n<color=#757575><u><size=150%>{warning}<color=#8f0000>{EFC.UnauthorizedReason}</color>{warning}</size></u>\n\n<color=white>\n{GetString("EFC.OnlineMsg")}\n{lines}");
+
+        }
+    }
+}
 [HarmonyPatch(typeof(BanMenu), nameof(BanMenu.SetVisible))]
 internal class BanMenuSetVisiblePatch
 {

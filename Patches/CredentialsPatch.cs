@@ -20,7 +20,7 @@ class PingTrackerUpdatePatch
             Instance ??= __instance;
 
             DelayUpdate--;
-
+          
             if (DelayUpdate > 0 && sb.Length > 0)
             {
                 ChangeText(__instance);
@@ -214,6 +214,7 @@ class ModManagerLateUpdatePatch
 
         LateTask.Update(Time.deltaTime);
         CheckMurderPatch.Update();
+        EFC.UpdateUnauthorizedFiles();
     }
     public static void Postfix(ModManager __instance)
     {
