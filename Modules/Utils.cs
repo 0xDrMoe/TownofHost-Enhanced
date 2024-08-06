@@ -231,7 +231,7 @@ public static class Utils
         }
         return;
     }
-
+    
     public static void TargetDies(PlayerControl killer, PlayerControl target)
     {
         if (!target.Data.IsDead || GameStates.IsMeeting) return;
@@ -1693,6 +1693,17 @@ public static class Utils
         return null;
     }
 
+    public static bool IsMethodOverridden(this RoleBase roleInstance, string methodName)
+    {
+        Type baseType = typeof(RoleBase);
+        Type derivedType = roleInstance.GetType();
+
+        MethodInfo baseMethod = baseType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance);
+        MethodInfo derivedMethod = derivedType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance);
+
+        return baseMethod.DeclaringType != derivedMethod.DeclaringType;
+    }
+
     public static NetworkedPlayerInfo GetPlayerInfoById(int PlayerId) =>
         GameData.Instance.AllPlayers.ToArray().FirstOrDefault(info => info.PlayerId == PlayerId);
     private static readonly StringBuilder SelfSuffix = new();
@@ -1701,9 +1712,8 @@ public static class Utils
     private static readonly StringBuilder TargetMark = new(20);
     public static async void NotifyRoles(PlayerControl SpecifySeer = null, PlayerControl SpecifyTarget = null, bool isForMeeting = false, bool NoCache = false, bool ForceLoop = true, bool CamouflageIsForMeeting = false, bool MushroomMixupIsActive = false)
     {
-        if (!AmongUsClient.Instance.AmHost) return;
+        if (!AmongUsClient.Instance.AmHost || GameStates.IsHideNSeek || OnPlayerLeftPatch.StartingProcessing) return;
         if (Main.AllPlayerControls == null) return;
-        if (GameStates.IsHideNSeek) return;
 
         //Do not update NotifyRoles during meetings
         if (GameStates.IsMeeting && !GameEndCheckerForNormal.ShowAllRolesWhenGameEnd) return;
@@ -1718,9 +1728,8 @@ public static class Utils
     }
     public static Task DoNotifyRoles(PlayerControl SpecifySeer = null, PlayerControl SpecifyTarget = null, bool isForMeeting = false, bool NoCache = false, bool ForceLoop = true, bool CamouflageIsForMeeting = false, bool MushroomMixupIsActive = false)
     {
-        if (!AmongUsClient.Instance.AmHost) return Task.CompletedTask;
+        if (!AmongUsClient.Instance.AmHost || GameStates.IsHideNSeek || OnPlayerLeftPatch.StartingProcessing) return Task.CompletedTask;
         if (Main.AllPlayerControls == null) return Task.CompletedTask;
-        if (GameStates.IsHideNSeek) return Task.CompletedTask;
 
         //Do not update NotifyRoles during meetings
         if (GameStates.IsMeeting && !GameEndCheckerForNormal.ShowAllRolesWhenGameEnd) return Task.CompletedTask;
@@ -1875,6 +1884,12 @@ public static class Utils
                 string SelfRoleName = $"<size={fontSize}>{seer.GetDisplayRoleAndSubName(seer, false)}{SelfTaskText}</size>";
                 string SelfDeathReason = seer.KnowDeathReason(seer) ? $" ({ColorString(GetRoleColor(CustomRoles.Doctor), GetVitalText(seer.PlayerId))})" : string.Empty;
                 string SelfName = $"{ColorString(seer.GetRoleColor(), SeerRealName)}{SelfDeathReason}{SelfMark}";
+
+                // Add protected player icon from ShieldPersonDiedFirst
+                if (seer.GetClient().GetHashedPuid() == Main.FirstDiedPrevious && MeetingStates.FirstMeeting && !isForMeeting)
+                {
+                    SelfName = $"{ColorString(seer.GetRoleColor(), $"<color=#4fa1ff><u></color>{SeerRealName}</u>")}{SelfDeathReason}<color=#4fa1ff>✚</color>{SelfMark}";
+                }
 
                 bool IsDisplayInfo = false;
                 if (MeetingStates.FirstMeeting && Options.ChangeNameToRoleInfo.GetBool() && !isForMeeting && Options.CurrentGameMode != CustomGameMode.FFA)
@@ -2048,6 +2063,9 @@ public static class Utils
                                     if (Options.NeutralKillersCanGuess.GetBool() && seer.GetCustomRole().IsNK())
                                         TargetPlayerName = GetTragetId;
 
+                                    if (Options.NeutralApocalypseCanGuess.GetBool() && seer.GetCustomRole().IsNA())
+                                        TargetPlayerName = GetTragetId;
+
                                     if (Options.PassiveNeutralsCanGuess.GetBool() && seer.GetCustomRole().IsNonNK() && !seer.Is(CustomRoles.Doomsayer))
                                         TargetPlayerName = GetTragetId;
                                 }
@@ -2098,6 +2116,12 @@ public static class Utils
                         string TargetName = $"{TargetRoleText}{TargetPlayerName}{TargetDeathReason}{TargetMark}{TargetSuffix}";
                         //TargetName += TargetSuffix.ToString() == "" ? "" : ("\r\n" + TargetSuffix.ToString());
 
+                        // Add protected player icon from ShieldPersonDiedFirst
+                        if (target.GetClient().GetHashedPuid() == Main.FirstDiedPrevious && MeetingStates.FirstMeeting && !isForMeeting && Options.ShowShieldedPlayerToAll.GetBool())
+                        {
+                            TargetName = $"{TargetRoleText}<color=#4fa1ff><u></color>{TargetPlayerName}</u>{TargetDeathReason}<color=#4fa1ff>✚</color>{TargetMark}{TargetSuffix}";
+                        }
+
                         realTarget.RpcSetNamePrivate(TargetName, seer, force: NoCache);
                     }
                 }
@@ -2123,7 +2147,8 @@ public static class Utils
             return rso is PlayerState.DeathReason.Overtired 
                 or PlayerState.DeathReason.etc
                 or PlayerState.DeathReason.Vote 
-                or PlayerState.DeathReason.Gambled;
+                or PlayerState.DeathReason.Gambled
+                or PlayerState.DeathReason.Armageddon;
         }
 
         return checkbanned ? !BannedReason(reason) : reason switch
@@ -2174,6 +2199,7 @@ public static class Utils
             var Breason when BannedReason(Breason) => false,
             PlayerState.DeathReason.Slice => CustomRoles.Hawk.IsEnable(),
             PlayerState.DeathReason.BloodLet => CustomRoles.Bloodmoon.IsEnable(),
+            PlayerState.DeathReason.Starved => CustomRoles.Baker.IsEnable(),
             PlayerState.DeathReason.Kill => true,
             _ => true,
         };
@@ -2190,7 +2216,10 @@ public static class Utils
 
         foreach (var playerState in Main.PlayerStates.Values.ToArray())
         {
-            playerState.RoleClass?.AfterMeetingTasks();
+            if (playerState.RoleClass == null) continue;
+
+            playerState.RoleClass.AfterMeetingTasks();
+            playerState.RoleClass.HasVoted = false;
         }
 
         //Set kill timer
