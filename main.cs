@@ -580,6 +580,7 @@ public enum CustomRoles
     Devourer,
     Disperser,
     DollMaster,
+    DoubleAgent,
     Eraser,
     Escapist,
     EvilGuesser,
